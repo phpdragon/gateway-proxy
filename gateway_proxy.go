@@ -8,6 +8,7 @@ import (
 	"./logic"
 	"./utils"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -64,7 +65,7 @@ func initSignalHandle() {
 	}()
 }
 
-func writeResponse(rw http.ResponseWriter, req *http.Request, response interface{}) {
+func writeJsonResponse(rw http.ResponseWriter, req *http.Request, response interface{}, isJson bool) {
 	origin := req.Header.Get(consts.ORIGIN)
 	rw.Header().Set(consts.CACHE_CONTROL, "No-Cache")
 	rw.Header().Set(consts.CONTENT_TYPE, "application/json; charset=utf-8")
@@ -75,11 +76,17 @@ func writeResponse(rw http.ResponseWriter, req *http.Request, response interface
 		rw.Header().Set(consts.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
 	}
 
-	dataBody, err := utils.ToJSONStringByte(response)
-	if err != nil {
-		log.Println(err)
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
+	var err interface{}
+	var dataBody []byte
+	if isJson {
+		dataBody, err = utils.ToJSONStringByte(response)
+		if err != nil {
+			log.Println(err)
+			rw.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	} else {
+		dataBody = []byte(response.(string))
 	}
 
 	_, err = rw.Write(dataBody)
@@ -124,17 +131,22 @@ func main() {
 
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
-		writeResponse(writer, request, ctl.ActuatorStatus(port, appName))
+		writeJsonResponse(writer, request, ctl.ActuatorStatus(port, appName), true)
 	})
 	http.HandleFunc(healthCheckUrl, func(writer http.ResponseWriter, request *http.Request) {
-		writeResponse(writer, request, ctl.ActuatorHealth())
+		writeJsonResponse(writer, request, ctl.ActuatorHealth(), true)
+	})
+	http.HandleFunc("/favicon.ico", func(writer http.ResponseWriter, request *http.Request) {
+		//TODO: 缓存起来
+		ff, _ := ioutil.ReadFile("favicon.ico")
+		_, err := writer.Write(ff)
+		if err != nil {
+			log.Println(err)
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		// full applications from eureka server
-		//apps := client.Applications
-		//b, _ := json.Marshal(apps)
-		//_, _ = writer.Write(b)
-
 		indexHandler(writer, request, client)
 	})
 
@@ -148,16 +160,11 @@ func main() {
 }
 
 func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.EurekaClient) {
-	if req.URL.Path != "/" {
-		//http.NotFound(rw, req)
-		//return
-	}
-
 	response, err := logic.HandleHttpRequest(req, client)
 	if nil != err {
 		log.Println(err)
 		response = core.BuildFail(core.SYSTEM_ERROR, "")
 	}
 
-	writeResponse(rw, req, response)
+	writeJsonResponse(rw, req, response, true)
 }
