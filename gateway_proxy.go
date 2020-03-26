@@ -4,6 +4,7 @@ import (
 	"./consts"
 	ctl "./controllers"
 	"./core"
+	logger "./core/log"
 	eureka "./eureka-client"
 	"./logic"
 	"./utils"
@@ -20,7 +21,7 @@ import (
 )
 
 var (
-	gFaviconIco,_ = ioutil.ReadFile("favicon.ico")
+	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
 	//	g_mqaddr = flag.String("mqaddr", "amqp://root:root1234@127.0.0.1:5672/", "mq server addr")
 	gMySQLConnect = flag.String("mysqlUrl", "root:root1234@tcp(127.0.0.1:3306)/db_gateway_proxy?charset=utf8", "myssql host")
 	//	g_redisaddr    = flag.String("redisaddr", "127.0.0.1:6379", "redis mq server addr")
@@ -106,12 +107,12 @@ func writeJsonResponse(rw http.ResponseWriter, req *http.Request, response inter
 		rw.Header().Set(consts.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
 	}
 
-	var err interface{}
+	var err error
 	var dataBody []byte
 	if isJson {
 		dataBody, err = utils.ToJSONStringByte(response)
 		if err != nil {
-			log.Println(err)
+			logger.Info(err.Error())
 			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -121,7 +122,7 @@ func writeJsonResponse(rw http.ResponseWriter, req *http.Request, response inter
 
 	_, err = rw.Write(dataBody)
 	if err != nil {
-		log.Println(err)
+		logger.Info(err.Error())
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -159,6 +160,9 @@ func main() {
 	}) // start client, register、heartbeat、refresh
 	client.Start()
 
+	//监听日志级别设置
+	http.HandleFunc("/handle/level", logger.GetAtomicLevel().ServeHTTP)
+
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
 		writeJsonResponse(writer, request, ctl.ActuatorStatus(port, appName), true)
@@ -169,7 +173,7 @@ func main() {
 	http.HandleFunc("/favicon.ico", func(writer http.ResponseWriter, request *http.Request) {
 		_, err := writer.Write(gFaviconIco)
 		if err != nil {
-			log.Println(err)
+			logger.Info(err.Error())
 			writer.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -190,7 +194,7 @@ func main() {
 func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.EurekaClient) {
 	response, err := logic.HandleHttpRequest(req, client)
 	if nil != err {
-		log.Println(err)
+		logger.Info(err.Error())
 		response = core.BuildFail(core.SYSTEM_ERROR, err.Error())
 	}
 

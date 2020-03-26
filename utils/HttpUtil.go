@@ -13,9 +13,9 @@ func HttpPostByte(url string, postData []byte) ([]byte, error) {
 	request.Header.Set("Connection", "keep-alive")
 	request.Header.Set("Content-type", "application/json;charset=UTF-8")
 	request.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
-	response, error := client.Do(request)
-	if error != nil || response.StatusCode != 200 {
-		return nil, error
+	response, err := client.Do(request)
+	if err != nil || response.StatusCode != 200 {
+		return nil, err
 	}
 
 	return ioutil.ReadAll(response.Body)
@@ -28,13 +28,13 @@ func HttpPost(url string, postData string) (string, error) {
 	request.Header.Set("Connection", "keep-alive")
 	request.Header.Set("Content-type", "application/json;charset=UTF-8")
 	request.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
-	response, error := client.Do(request)
-	if error != nil || response.StatusCode != 200 {
+	response, err := client.Do(request)
+	if err != nil || response.StatusCode != 200 {
 		return "", nil
 	}
 
-	body, error := ioutil.ReadAll(response.Body)
-	return string(body), error
+	body, err := ioutil.ReadAll(response.Body)
+	return string(body), err
 }
 
 func HttpGet(url string) (string, error) {
@@ -42,14 +42,14 @@ func HttpGet(url string) (string, error) {
 	client := &http.Client{}
 	request, _ := http.NewRequest("GET", url, nil)
 	request.Header.Set("Connection", "keep-alive")
-	response, error := client.Do(request)
-	if error != nil || response.StatusCode != 200 {
+	response, err := client.Do(request)
+	if err != nil || response.StatusCode != 200 {
 		return "", nil
 	}
 
-	body, error := ioutil.ReadAll(response.Body)
-	if error != nil || response.StatusCode != 200 {
-		return "", error
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil || response.StatusCode != 200 {
+		return "", err
 	}
-	return string(body), error
+	return string(body), err
 }

@@ -3,14 +3,13 @@ package logic
 import (
 	"../consts"
 	"../core"
+	log "../core/log"
 	eureka "../eureka-client"
 	"../models"
 	"../utils"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -25,7 +24,7 @@ func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interfac
 
 	routeMap, err := models.QueryAllActiveRoutes()
 	if nil != err {
-		log.Println(err)
+		log.Info(err.Error())
 		return nil, err
 	}
 	if nil == routeMap {
@@ -34,7 +33,7 @@ func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interfac
 
 	route, ok := routeMap[req.URL.Path]
 	if !ok {
-		log.Println(err)
+		log.Info(err.Error())
 		return nil, errors.New("请开发人员配置转发设置")
 	}
 
@@ -58,10 +57,12 @@ func callRemoteService(httpUrl string, req []byte) (interface{}, error) {
 func getPostParams(rw http.ResponseWriter, req *http.Request) (core.ApiRequest, error) {
 	body, err := ioutil.ReadAll(req.Body)
 	if nil != err {
+		log.Info(err.Error())
 		return core.ApiRequest{}, err
 	}
 	err = req.Body.Close()
 	if nil != err {
+		log.Info(err.Error())
 		return core.ApiRequest{}, err
 	}
 
@@ -73,7 +74,7 @@ func getPostParams(rw http.ResponseWriter, req *http.Request) (core.ApiRequest, 
 		err := json.Unmarshal([]byte(body), &requestData)
 		//解析失败会报错，如json字符串格式不对，缺"号，缺}等。
 		if err != nil {
-			fmt.Println(err)
+			log.Info(err.Error())
 			return requestData, nil
 		}
 	} else if strings.Contains(contentType, consts.APPLICATION_X_WWW_FORM_URLENCODED) {

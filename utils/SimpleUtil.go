@@ -1,9 +1,9 @@
 package utils
 
 import (
+	log "../core/log"
 	"bytes"
 	"encoding/json"
-	"log"
 	"os"
 	"regexp"
 )
@@ -13,7 +13,7 @@ func dumJsonStr(jsonStr string) {
 	err := json.Indent(&out, []byte(jsonStr), "", "\t")
 
 	if err != nil {
-		log.Fatalln(err)
+		log.Info(err.Error())
 	}
 
 	_, _ = out.WriteTo(os.Stdout)
@@ -23,7 +23,7 @@ func jsonStr2Map(jsonStr string) (map[string]interface{}, error) {
 	var mapResult map[string]interface{}
 	//使用 json.Unmarshal(data []byte, v interface{})进行转换,返回 error 信息
 	if err := json.Unmarshal([]byte(jsonStr), &mapResult); err != nil {
-		log.Fatal(err)
+		log.Info(err.Error())
 		return nil, err
 	}
 
