@@ -4,6 +4,7 @@ import (
 	"../consts"
 	"../core"
 	eureka "../eureka-client"
+	"../models"
 	"../utils"
 	"encoding/json"
 	"errors"
@@ -18,24 +19,30 @@ func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interfac
 	body, _ := ioutil.ReadAll(req.Body)
 	_ = req.Body.Close()
 
-	if 0 == len(body){
+	if 0 == len(body) {
 		return nil, errors.New("参数不能为空")
 	}
 
-	httpUrl := client.GetRealHttpUrl("http://CLOUD-FILE-PROXY/qcloud/getCosAuthConfig")
-
-	requestData := core.ApiRequest{}
-	err := json.Unmarshal([]byte(body), &requestData)
-	//解析失败会报错，如json字符串格式不对，缺"号，缺}等。
-	if err != nil {
+	routeMap, err := models.QueryAllActiveRoutes()
+	if nil != err {
 		log.Println(err)
 		return nil, err
 	}
+	if nil == routeMap {
+		return nil, errors.New("请开发人员配置转发设置")
+	}
 
+	route, ok := routeMap[req.URL.Path]
+	if !ok {
+		log.Println(err)
+		return nil, errors.New("请开发人员配置转发设置")
+	}
+
+	//获取真实的链接
+	httpUrl := client.GetRealHttpUrl(route.ServiceUrl)
 	//调用远程服务
-	//"http://172.16.1.124:12247/qcloud/getCosAuthConfig"
-	remoteData,err := callRemoteService(httpUrl, body)
-	if nil != err{
+	remoteData, err := callRemoteService(httpUrl, body)
+	if nil != err {
 		return nil, err
 	}
 
@@ -44,7 +51,7 @@ func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interfac
 	return response, nil
 }
 
-func callRemoteService(httpUrl string, req []byte) (interface{},error) {
+func callRemoteService(httpUrl string, req []byte) (interface{}, error) {
 	return utils.HttpPostByte(httpUrl, req)
 }
 

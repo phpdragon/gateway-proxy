@@ -7,7 +7,10 @@ import (
 	eureka "./eureka-client"
 	"./logic"
 	"./utils"
+	"flag"
 	"fmt"
+	"github.com/astaxie/beego/orm"
+	"github.com/rakyll/globalconf"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,24 +19,50 @@ import (
 	"syscall"
 )
 
-//var (
-//	g_mqaddr = flag.String("mqaddr", "amqp://jyb:root@172.16.1.8:5672/", "mq server addr")
-//
-//	g_mysqlconnect = flag.String("mysqipaddr", "172.16.1.13:3306", "myssql host")
-//	g_redisaddr    = flag.String("redisaddr", "172.16.1.13:6379", "redis mq server addr")
-//
-//	g_srvport = flag.String("srvport", "19959", "server port")
-//
-//	g_jmfpathbase = flag.String("jmfpathbase", "com.jyblife.com.bg", "jmf path base")
-//	g_jmfapp      = flag.String("jmfapp", "userService", "jmf app name")
-//	g_verion      = flag.String("version", "1.0.0", "version")
-//	g_owner       = flag.String("owner", "zhonghua.hzh", "server owner")
-//	g_group       = flag.String("group", "*", "server group")
-//)
+var (
+	//	g_mqaddr = flag.String("mqaddr", "amqp://root:root1234@127.0.0.1:5672/", "mq server addr")
+	gMySQLConnect = flag.String("mysqlUrl", "root:root1234@tcp(127.0.0.1:3306)/db_gateway_proxy?charset=utf8", "myssql host")
+	//	g_redisaddr    = flag.String("redisaddr", "127.0.0.1:6379", "redis mq server addr")
+	//	g_srvport = flag.String("srvport", "19959", "server port")
+	//	g_group       = flag.String("group", "*", "server group")
+)
 
 //初始化方法
 func init() {
 	initSignalHandle()
+	//initConfig()
+	initDB()
+}
+
+//初始化参数配置
+func initConfig() {
+	if len(os.Args) < 2 {
+		log.Println("Please set config file !")
+		os.Exit(-1)
+	}
+
+	conf, err := globalconf.NewWithOptions(&globalconf.Options{
+		Filename: os.Args[1],
+	})
+
+	if err != nil {
+		log.Print("Load config file: ", os.Args[1], " fail, error:", err)
+		os.Exit(-1)
+	}
+	log.Print("Load config file: ", os.Args[1], " success\n")
+
+	conf.ParseAll()
+}
+
+func initDB() {
+	orm.RegisterDriver("mysql", orm.DRMySQL)
+	// set default database
+	if err := orm.RegisterDataBase("default", "mysql", *gMySQLConnect); err != nil {
+		log.Println("init db failed. err: ", fmt.Sprint(err))
+		os.Exit(1)
+	}
+
+	log.Println("Init db success. host: ", *gMySQLConnect)
 }
 
 /**

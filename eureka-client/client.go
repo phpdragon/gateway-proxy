@@ -32,7 +32,7 @@ func (client *EurekaClient) Start() {
 	client.mutex.Unlock()
 
 	//TODO: 设值自增器
-	client.autoInc = NewAutoInc(0,1)
+	client.autoInc = NewAutoInc(0, 1)
 
 	// 注册
 	if err := client.doRegister(); err != nil {
@@ -189,7 +189,7 @@ func (client *EurekaClient) GetNextServerFromEureka(appName string) Instance {
 		client.cache = appMap
 	}
 
-	appList := client.cache[appName].(map[int]interface {})
+	appList := client.cache[appName].(map[int]interface{})
 	var incrementAndGet = client.autoInc.IncrementAndGet()
 	var index = incrementAndGet % len(appList)
 	return appList[index].(Instance)

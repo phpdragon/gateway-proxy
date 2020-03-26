@@ -17,10 +17,10 @@ type Config struct {
 	// 应用名称
 	App string
 	// 端口
-	Port        int
-	StatusPageURL string
+	Port           int
+	StatusPageURL  string
 	HealthCheckUrl string
-	Metadata    map[string]interface{}
+	Metadata       map[string]interface{}
 
 	// 服务实例信息
 	instance *Instance

@@ -15,7 +15,7 @@ type health struct {
 type Details struct {
 }
 
-func ActuatorStatus(port string,appName string) interface{} {
+func ActuatorStatus(port string, appName string) interface{} {
 	appStatus := status{}
 	appStatus.Name = appName
 	appStatus.Server.Port = port

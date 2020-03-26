@@ -2,24 +2,24 @@ package eureka_client
 
 type AutoInc struct {
 	start, step int
-	queue chan int
-	running bool
+	queue       chan int
+	running     bool
 }
 
 func NewAutoInc(start, step int) (ai *AutoInc) {
 	ai = &AutoInc{
-		start: start,
-		step: step,
+		start:   start,
+		step:    step,
 		running: true,
-		queue: make(chan int, 4),
+		queue:   make(chan int, 4),
 	}
 	go ai.process()
 	return
 }
 
 func (ai *AutoInc) process() {
-	defer func() {recover()}()
-	for i := ai.start; ai.running ; i=i+ai.step {
+	defer func() { recover() }()
+	for i := ai.start; ai.running; i = i + ai.step {
 		ai.queue <- i
 	}
 }
