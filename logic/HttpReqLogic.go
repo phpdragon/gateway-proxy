@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interface{}, error) {
+func HandleHttpRequest(req *http.Request, eurekaClient *eureka.EurekaClient) (interface{}, error) {
 	body, _ := ioutil.ReadAll(req.Body)
 	_ = req.Body.Close()
 
@@ -37,13 +37,21 @@ func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interfac
 		return nil, errors.New("请开发人员配置转发设置")
 	}
 
+	//请求频率检测
+	if !CheckAccessRateLimit(route) {
+		return nil, errors.New("请求过于频繁，请稍后再试")
+	}
+
 	//获取真实的链接
-	httpUrl := client.GetRealHttpUrl(route.ServiceUrl)
+	httpUrl := eurekaClient.GetRealHttpUrl(route.ServiceUrl)
 	//调用远程服务
 	remoteData, err := callRemoteService(httpUrl, body)
 	if nil != err {
 		return nil, err
 	}
+
+	//访问数量增加一次
+	AccessTotalIncr(route.Id)
 
 	response := core.BuildOK()
 	response.Data = remoteData

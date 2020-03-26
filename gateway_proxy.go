@@ -17,13 +17,15 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 )
 
 var (
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
 	//	g_mqaddr = flag.String("mqaddr", "amqp://root:root1234@127.0.0.1:5672/", "mq server addr")
-	gMySQLConnect = flag.String("mysqlUrl", "root:root1234@tcp(127.0.0.1:3306)/db_gateway_proxy?charset=utf8", "myssql host")
+	gMySQLConnect = flag.String("mysql_url", "root:root1234@tcp(127.0.0.1:3306)/db_gateway_proxy?charset=utf8", "myssql host")
 	//	g_redisaddr    = flag.String("redisaddr", "127.0.0.1:6379", "redis mq server addr")
 	//	g_srvport = flag.String("srvport", "19959", "server port")
 	//	g_group       = flag.String("group", "*", "server group")
@@ -192,6 +194,9 @@ func main() {
 }
 
 func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.EurekaClient) {
+	startTime := utils.GetCurrentTimeMillis()
+	logger.Info("")
+
 	response, err := logic.HandleHttpRequest(req, client)
 	if nil != err {
 		logger.Info(err.Error())
@@ -199,4 +204,19 @@ func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.Eure
 	}
 
 	writeJsonResponse(rw, req, response, true)
+
+	//打印方法执行耗时的信息
+	endTime := utils.GetCurrentTimeMillis()
+	printExecTime(startTime,endTime)
+}
+
+//打印方法执行耗时的信息
+func printExecTime(startTime int64,  endTime int64)  {
+	diffTime := endTime - startTime
+	diffTimeStr := strings.Replace("请求处理结束,耗时: time ms \n\n=========================================>>>", "time",strconv.FormatInt(diffTime,10),-1)
+	if diffTime > 1000 {
+		logger.Warn(diffTimeStr)
+	} else {
+		logger.Info(diffTimeStr)
+	}
 }
