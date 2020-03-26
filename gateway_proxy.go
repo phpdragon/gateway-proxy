@@ -155,7 +155,7 @@ func main() {
 
 	// start http server
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 }
 
@@ -163,7 +163,7 @@ func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.Eure
 	response, err := logic.HandleHttpRequest(req, client)
 	if nil != err {
 		log.Println(err)
-		response = core.BuildFail(core.SYSTEM_ERROR, "")
+		response = core.BuildFail(core.SYSTEM_ERROR, err.Error())
 	}
 
 	writeJsonResponse(rw, req, response, true)

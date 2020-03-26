@@ -6,8 +6,10 @@ import (
 	eureka "../eureka-client"
 	"../utils"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -16,13 +18,17 @@ func HandleHttpRequest(req *http.Request, client *eureka.EurekaClient) (interfac
 	body, _ := ioutil.ReadAll(req.Body)
 	_ = req.Body.Close()
 
+	if 0 == len(body){
+		return nil, errors.New("参数不能为空")
+	}
+
 	httpUrl := client.GetRealHttpUrl("http://CLOUD-FILE-PROXY/qcloud/getCosAuthConfig")
 
 	requestData := core.ApiRequest{}
 	err := json.Unmarshal([]byte(body), &requestData)
 	//解析失败会报错，如json字符串格式不对，缺"号，缺}等。
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return nil, err
 	}
 
