@@ -3,6 +3,7 @@ package main
 import (
 	"./consts"
 	ctl "./controllers"
+	"./core"
 	eureka "./eureka-client"
 	"./logic"
 	"./utils"
@@ -42,7 +43,7 @@ func initSignalHandle() {
 		for {
 			ch := make(chan os.Signal)
 
-			signal.Notify(ch, syscall.SIGHUP,syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
+			signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 			sig := <-ch
 			fmt.Println("Signal received:", sig, " \n")
 			switch sig {
@@ -63,7 +64,7 @@ func initSignalHandle() {
 	}()
 }
 
-func returnResponse(rw http.ResponseWriter, req *http.Request, data interface{}) {
+func writeResponse(rw http.ResponseWriter, req *http.Request, response interface{}) {
 	origin := req.Header.Get(consts.ORIGIN)
 	rw.Header().Set(consts.CACHE_CONTROL, "No-Cache")
 	rw.Header().Set(consts.CONTENT_TYPE, "application/json; charset=utf-8")
@@ -74,9 +75,18 @@ func returnResponse(rw http.ResponseWriter, req *http.Request, data interface{})
 		rw.Header().Set(consts.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
 	}
 
-	_, err := rw.Write(utils.ToJSONStringByte(data))
+	dataBody, err := utils.ToJSONStringByte(response)
 	if err != nil {
+		log.Println(err)
 		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = rw.Write(dataBody)
+	if err != nil {
+		log.Println(err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -114,10 +124,10 @@ func main() {
 
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
-		returnResponse(writer, request, ctl.ActuatorStatus(port, appName))
+		writeResponse(writer, request, ctl.ActuatorStatus(port, appName))
 	})
 	http.HandleFunc(healthCheckUrl, func(writer http.ResponseWriter, request *http.Request) {
-		returnResponse(writer, request, ctl.ActuatorHealth())
+		writeResponse(writer, request, ctl.ActuatorHealth())
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		// full applications from eureka server
@@ -133,34 +143,21 @@ func main() {
 
 	// start http server
 	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
 
 func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.EurekaClient) {
 	if req.URL.Path != "/" {
-		http.NotFound(rw, req)
-		return
+		//http.NotFound(rw, req)
+		//return
 	}
 
-	instance := client.GetNextServerFromEureka("FUNDS-ACCOUNT")
-	println("instance: " + utils.ToJSONString(instance))
-
-	response, _ := logic.HandleHttpRequest(rw, req)
-
-	origin := req.Header.Get(consts.ORIGIN)
-	rw.Header().Set(consts.CACHE_CONTROL, "No-Cache")
-	rw.Header().Set(consts.CONTENT_TYPE, "application/json; charset=utf-8")
-	rw.Header().Set(consts.PRAGMA, "No-Cache")
-	rw.Header().Set(consts.EXPIRES, "Thu, 01 Jan 1970 00:00:00 GMT")
-	if 0 < len(origin) {
-		rw.Header().Set(consts.ACCESS_CONTROL_ALLOW_ORIGIN, origin)
-		rw.Header().Set(consts.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true")
+	response, err := logic.HandleHttpRequest(req, client)
+	if nil != err {
+		log.Println(err)
+		response = core.BuildFail(core.SYSTEM_ERROR, "")
 	}
 
-	_, err := rw.Write([]byte(utils.ToJSONString(response)))
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-	}
+	writeResponse(rw, req, response)
 }

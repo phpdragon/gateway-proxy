@@ -194,3 +194,16 @@ func (client *EurekaClient) GetNextServerFromEureka(appName string) Instance {
 	var index = incrementAndGet % len(appList)
 	return appList[index].(Instance)
 }
+
+//TODO: 优化 比如https
+func (client *EurekaClient) GetRealHttpUrl(httpUrl string) string {
+	httpUrlTmp := strings.Replace(httpUrl, "http://", "", -1)
+	httpUrlTmp = strings.Replace(httpUrlTmp, "https://", "", -1)
+	urls := strings.Split(httpUrlTmp, "/")
+	appName := urls[0]
+
+	instance := client.GetNextServerFromEureka(appName)
+	realIpPort := instance.InstanceID
+
+	return strings.Replace(httpUrl, appName, realIpPort, -1)
+}

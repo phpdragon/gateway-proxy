@@ -16,18 +16,18 @@ func dumJsonStr(jsonStr string) {
 		log.Fatalln(err)
 	}
 
-	out.WriteTo(os.Stdout)
+	_, _ = out.WriteTo(os.Stdout)
 }
 
-func jsonStr2Map(jsonStr string) map[string]interface{} {
+func jsonStr2Map(jsonStr string) (map[string]interface{}, error) {
 	var mapResult map[string]interface{}
 	//使用 json.Unmarshal(data []byte, v interface{})进行转换,返回 error 信息
 	if err := json.Unmarshal([]byte(jsonStr), &mapResult); err != nil {
 		log.Fatal(err)
-		return nil
+		return nil, err
 	}
 
-	return mapResult
+	return mapResult, nil
 }
 
 func isIpAddressPort(ipStr string) bool {
