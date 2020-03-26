@@ -19,7 +19,7 @@ CREATE TABLE `t_route` (
   `service_url` varchar(300) DEFAULT NULL COMMENT '服务名',
   `rate_limit` int(11) DEFAULT '10' COMMENT '频率限制每秒次数',
   `timeout` int(11) DEFAULT '10' COMMENT '微服务调用超时时间，秒',
-  `status` int(2) DEFAULT NULL COMMENT '1:启用,0:禁用',
+  `status` int(1) DEFAULT NULL COMMENT '1:启用,0:禁用',
   `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `url_path` (`url_path`) USING BTREE
@@ -39,6 +39,13 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 1.  xxxx
 2.  xxxx
 3.  xxxx
+
+#### TODO
+1.eureka-client 还有部分功能未实现
+2.需要添加日志上报功能
+3.抽离功能部分成为代码库
+4.启动、编译、部署脚本
+5.测试用例编写
 
 #### 参与贡献
 
