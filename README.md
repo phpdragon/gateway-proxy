@@ -9,7 +9,28 @@
 
 #### 安装教程
 
-1.  xxxx
+1.  DB
+
+```sql
+CREATE TABLE `t_route` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `app_id` int(11) DEFAULT '0' COMMENT 'appId',
+  `url_path` varchar(75) DEFAULT NULL COMMENT 'URI路径',
+  `service_url` varchar(300) DEFAULT NULL COMMENT '服务名',
+  `rate_limit` int(11) DEFAULT '10' COMMENT '频率限制每秒次数',
+  `timeout` int(11) DEFAULT '10' COMMENT '微服务调用超时时间，秒',
+  `status` int(2) DEFAULT NULL COMMENT '1:启用,0:禁用',
+  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `url_path` (`url_path`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='cmd 服务名映射表';
+
+INSERT INTO `db_gateway_proxy`.`t_route`(`id`, `app_id`, `url_path`, `service_url`, `rate_limit`, `timeout`, `status`, `timestamp`)
+VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 1, '2020-03-26 19:50:59');
+
+```
+
+
 2.  xxxx
 3.  xxxx
 
