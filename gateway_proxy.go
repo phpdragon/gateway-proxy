@@ -20,6 +20,7 @@ import (
 )
 
 var (
+	gFaviconIco,_ = ioutil.ReadFile("favicon.ico")
 	//	g_mqaddr = flag.String("mqaddr", "amqp://root:root1234@127.0.0.1:5672/", "mq server addr")
 	gMySQLConnect = flag.String("mysqlUrl", "root:root1234@tcp(127.0.0.1:3306)/db_gateway_proxy?charset=utf8", "myssql host")
 	//	g_redisaddr    = flag.String("redisaddr", "127.0.0.1:6379", "redis mq server addr")
@@ -166,9 +167,7 @@ func main() {
 		writeJsonResponse(writer, request, ctl.ActuatorHealth(), true)
 	})
 	http.HandleFunc("/favicon.ico", func(writer http.ResponseWriter, request *http.Request) {
-		//TODO: 缓存起来
-		ff, _ := ioutil.ReadFile("favicon.ico")
-		_, err := writer.Write(ff)
+		_, err := writer.Write(gFaviconIco)
 		if err != nil {
 			log.Println(err)
 			writer.WriteHeader(http.StatusInternalServerError)
