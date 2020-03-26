@@ -11,6 +11,7 @@ import (
 var errorLogger *zap.Logger
 
 func init() {
+	//TODO:从配置中获取
 	fileName := "zap.log"
 
 	fileWriter := zapcore.AddSync(&lumberjack.Logger{
