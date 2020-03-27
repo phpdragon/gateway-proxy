@@ -40,6 +40,10 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 2.  xxxx
 3.  xxxx
 
+#### 压力测试
+1. echo '{"a":"b"}' > data.json
+2. ab -c 10 -t 60 -T 'application/json' -p data.json http://192.16.1.2:8080/cfg/testCtl/demoAction
+
 #### TODO
 1. eureka-client 还有部分功能未实现
 2. 需要添加日志上报功能
