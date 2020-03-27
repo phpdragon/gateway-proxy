@@ -11,7 +11,7 @@ type Route struct {
 	AppId      string `orm:"column(app_id)" json:"app_id"`
 	UrlPath    string `orm:"column(url_path)" json:"url_path"`
 	ServiceUrl string `orm:"column(service_url)" json:"service"`
-	RateLimit int    `orm:"column(rate_limit)" json:"rate_limit"`
+	RateLimit  int    `orm:"column(rate_limit)" json:"rate_limit"`
 	Timeout    int    `orm:"column(timeout)" json:"timeout"`
 	Status     int    `orm:"column(status)" json:"status"`
 	Timestamp  string `orm:"column(timestamp)" json:"timestamp"`

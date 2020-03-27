@@ -3,8 +3,8 @@ package utils
 import "time"
 
 //当前系统秒
-func GetCurrentTimestamp() int64 {
-	return time.Now().Unix()
+func GetCurrentTimestamp() int32 {
+	return int32(time.Now().Unix())
 }
 
 //当前系统毫秒

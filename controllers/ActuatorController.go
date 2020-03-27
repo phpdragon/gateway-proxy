@@ -1,5 +1,9 @@
 package controllers
 
+import (
+	"../utils"
+)
+
 type status struct {
 	Name   string `json:"name"`
 	Server struct {
@@ -15,10 +19,10 @@ type health struct {
 type Details struct {
 }
 
-func ActuatorStatus(port string, appName string) interface{} {
+func ActuatorStatus(port int, appName string) interface{} {
 	appStatus := status{}
 	appStatus.Name = appName
-	appStatus.Server.Port = port
+	appStatus.Server.Port = utils.Int2Str(port)
 	return appStatus
 }
 

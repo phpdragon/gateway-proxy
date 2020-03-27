@@ -5,15 +5,14 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/apex/log"
+	"github.com/go-yaml/yaml"
 	"io/ioutil"
+	"log"
 	"os"
 	"reflect"
 	"strings"
 	"text/template"
 	"time"
-
-	"github.com/go-yaml/yaml"
 )
 
 type templateData struct {
@@ -28,6 +27,7 @@ type inValid struct {
 //服务端配置数据结构
 type AppConfig struct {
 	RunMode  bool
+	AppName  string `yaml:"application"`
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
@@ -54,6 +54,7 @@ type RedisConfig struct {
 	Host     string
 	Password string
 	Db       int
+	PoolSize int
 }
 
 var (
@@ -79,6 +80,12 @@ func GetAppConfig() *AppConfig {
 }
 
 func GetServerConfig() ServerConfig {
+	port := appConfig.Server.Port
+	if port <= 0 {
+		port = 8080
+		log.Printf("Defaulting to port %s", port)
+	}
+	appConfig.Server.Port = 8080
 	return appConfig.Server
 }
 

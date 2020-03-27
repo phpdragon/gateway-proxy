@@ -27,19 +27,13 @@ var (
 //初始化方法
 func init() {
 	initSignalHandle()
-	//initConfig()
 	initDB()
-}
-
-//初始化参数配置
-func initConfig() {
-
 }
 
 func initDB() {
 	dbConfig := core.GetDatabaseConfig()
 	_ = orm.RegisterDriver("mysql", orm.DRMySQL)
-	dataSource := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s",dbConfig.User,dbConfig.Password,dbConfig.Host,dbConfig.DbName, dbConfig.Charset)
+	dataSource := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s", dbConfig.User, dbConfig.Password, dbConfig.Host, dbConfig.DbName, dbConfig.Charset)
 
 	// set default database
 	if err := orm.RegisterDataBase("default", "mysql", dataSource); err != nil {
@@ -113,20 +107,15 @@ func writeJsonResponse(rw http.ResponseWriter, req *http.Request, response inter
 
 //程序入口
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-		log.Printf("Defaulting to port %s", port)
-	}
+	appConfig := core.GetAppConfig()
 
 	var statusPageURL = "/actuator/info"
 	var healthCheckUrl = "/actuator/health"
-	var appName = "go-example"
 
 	// create eureka client
-	var client = eureka.NewClient(&eureka.Config{
+	var eurekaClient = eureka.NewClient(&eureka.Config{
 		DefaultZone:           "http://172.16.1.155:8761/eureka/",
-		App:                   appName,
+		App:                   appConfig.AppName,
 		Port:                  10000,
 		RenewalIntervalInSecs: 10,
 		DurationInSecs:        30,
@@ -140,15 +129,15 @@ func main() {
 		},
 		StatusPageURL:  statusPageURL,
 		HealthCheckUrl: healthCheckUrl,
-	}) // start client, register、heartbeat、refresh
-	client.Start()
+	}) // start eurekaClient, register、heartbeat、refresh
+	eurekaClient.Start()
 
 	//监听日志级别设置
 	http.HandleFunc("/handle/level", logger.GetAtomicLevel().ServeHTTP)
 
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, ctl.ActuatorStatus(port, appName), true)
+		writeJsonResponse(writer, request, ctl.ActuatorStatus(appConfig.Server.Port, appConfig.AppName), true)
 	})
 	http.HandleFunc(healthCheckUrl, func(writer http.ResponseWriter, request *http.Request) {
 		writeJsonResponse(writer, request, ctl.ActuatorHealth(), true)
@@ -162,14 +151,14 @@ func main() {
 		}
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		indexHandler(writer, request, client)
+		indexHandler(writer, request, eurekaClient)
 	})
 
-	log.Printf("Listening on port %s", port)
-	log.Printf("Open http://localhost:%s in the browser", port)
+	log.Printf("Listening on port %d", appConfig.Server.Port)
+	log.Printf("Open http://localhost:%d in the browser", appConfig.Server.Port)
 
 	// start http server
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", port), nil); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Server.Port), nil); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -180,7 +169,7 @@ func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.Eure
 
 	response, err := logic.HandleHttpRequest(req, client)
 	if nil != err {
-		logger.Info(err.Error())
+		logger.Error(err.Error())
 		response = core.BuildFail(core.SYSTEM_ERROR, err.Error())
 	}
 
@@ -188,13 +177,13 @@ func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.Eure
 
 	//打印方法执行耗时的信息
 	endTime := utils.GetCurrentTimeMillis()
-	printExecTime(startTime,endTime)
+	printExecTime(startTime, endTime)
 }
 
 //打印方法执行耗时的信息
-func printExecTime(startTime int64,  endTime int64)  {
+func printExecTime(startTime int64, endTime int64) {
 	diffTime := endTime - startTime
-	diffTimeStr := strings.Replace("请求处理结束,耗时: time ms \n\n=========================================>>>", "time",strconv.FormatInt(diffTime,10),-1)
+	diffTimeStr := strings.Replace("请求处理结束,耗时: time ms \n\n=========================================>>>", "time", strconv.FormatInt(diffTime, 10), -1)
 	if diffTime > 1000 {
 		logger.Warn(diffTimeStr)
 	} else {
