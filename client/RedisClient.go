@@ -1,22 +1,19 @@
 package client
 
 import (
-	"flag"
+	"../core"
 	"github.com/go-redis/redis"
 )
 
-var (
-	redisClient *redis.Client
-	redisAddr = flag.String("redis_addr", "172.16.1.120:6379", "redis addr")
-	redisPwd  = flag.String("redis_pwd", "", "redis pwd")
-	redisDb   = flag.Int("redis_db", 0, "redis db")
-)
+//初始化
+var redisClient *redis.Client
 
 func init()  {
+	redisConfig := core.GetRedisConfig()
 	redisClient = redis.NewClient(&redis.Options{
-		Addr:     *redisAddr,
-		Password: *redisPwd, // no password set
-		DB:       *redisDb,  // use default DB
+		Addr:    redisConfig.Host,
+		Password: redisConfig.Password, // no password set
+		DB:       redisConfig.Db,  // use default DB
 	})
 }
 

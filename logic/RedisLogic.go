@@ -50,7 +50,7 @@ func AccessTotalIncr(routeId int){
 func AccessTotalIncrBy(routeId int, total int){
 	key  := getAccessTotalCacheKey(strconv.Itoa(routeId))
 	val := strconv.FormatInt(utils.GetCurrentTimeMillis(),10) + "|" + strconv.Itoa(total)
-	err := client.Redis().Set(key, val,time.Minute).Err()
+	err := client.Redis().Set(key, val,180 * time.Second).Err()
 	if nil != err{
 		log.Error(err.Error())
 	}

@@ -8,10 +8,8 @@ import (
 	eureka "./eureka-client"
 	"./logic"
 	"./utils"
-	"flag"
 	"fmt"
 	"github.com/astaxie/beego/orm"
-	"github.com/rakyll/globalconf"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,11 +22,6 @@ import (
 
 var (
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
-	//	g_mqaddr = flag.String("mqaddr", "amqp://root:root1234@127.0.0.1:5672/", "mq server addr")
-	gMySQLConnect = flag.String("mysql_url", "root:root1234@tcp(127.0.0.1:3306)/db_gateway_proxy?charset=utf8", "myssql host")
-	//	g_redisaddr    = flag.String("redisaddr", "127.0.0.1:6379", "redis mq server addr")
-	//	g_srvport = flag.String("srvport", "19959", "server port")
-	//	g_group       = flag.String("group", "*", "server group")
 )
 
 //初始化方法
@@ -40,33 +33,21 @@ func init() {
 
 //初始化参数配置
 func initConfig() {
-	if len(os.Args) < 2 {
-		log.Println("Please set config file !")
-		os.Exit(-1)
-	}
 
-	conf, err := globalconf.NewWithOptions(&globalconf.Options{
-		Filename: os.Args[1],
-	})
-
-	if err != nil {
-		log.Print("Load config file: ", os.Args[1], " fail, error:", err)
-		os.Exit(-1)
-	}
-	log.Print("Load config file: ", os.Args[1], " success\n")
-
-	conf.ParseAll()
 }
 
 func initDB() {
-	orm.RegisterDriver("mysql", orm.DRMySQL)
+	dbConfig := core.GetDatabaseConfig()
+	_ = orm.RegisterDriver("mysql", orm.DRMySQL)
+	dataSource := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=%s",dbConfig.User,dbConfig.Password,dbConfig.Host,dbConfig.DbName, dbConfig.Charset)
+
 	// set default database
-	if err := orm.RegisterDataBase("default", "mysql", *gMySQLConnect); err != nil {
-		log.Println("init db failed. err: ", fmt.Sprint(err))
+	if err := orm.RegisterDataBase("default", "mysql", dataSource); err != nil {
+		log.Println("Init db failed. err: ", fmt.Sprint(err))
 		os.Exit(1)
 	}
 
-	log.Println("Init db success. host: ", *gMySQLConnect)
+	log.Println("Init db success. host: ", dataSource)
 }
 
 /**
