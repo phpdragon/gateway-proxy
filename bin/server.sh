@@ -105,7 +105,7 @@ is_mac_os() {
   return 1
 }
 
-is_ubuntu_os(){
+is_ubuntu_os() {
   if [ -f "/etc/issue" ]; then
     # shellcheck disable=SC2002
     if (cat "/etc/issue" | grep -q "CentOS"); then
@@ -166,19 +166,19 @@ restart() {
 }
 
 case $1 in
-start)
+'start')
   start
   return_curr_dir
   ;;
-stop)
+'stop')
   stop
   return_curr_dir
   ;;
-restart)
+'restart')
   restart
   return_curr_dir
   ;;
-status)
+'status')
   check_app_status
   return_curr_dir
   ;;
@@ -187,3 +187,5 @@ status)
   exit 1
   ;;
 esac
+
+exit 0
