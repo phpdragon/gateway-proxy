@@ -1,7 +1,7 @@
 package client
 
 import (
-	"../core"
+	core "../core"
 	"github.com/go-redis/redis"
 	"runtime"
 )

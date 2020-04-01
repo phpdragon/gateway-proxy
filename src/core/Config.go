@@ -1,6 +1,7 @@
 package core
 
 import (
+	"../utils"
 	"bytes"
 	"errors"
 	"flag"
@@ -31,6 +32,7 @@ type AppConfig struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
+	Log      Log
 	//RenamedC int   `yaml:"c"`
 	//D        []int `yaml:",flow"`
 }
@@ -57,16 +59,21 @@ type RedisConfig struct {
 	PoolSize int
 }
 
+type Log struct {
+	Path string
+}
+
 var (
 	//https://studygolang.com/articles/4490
-	debugMode  = flag.Bool("d", false, "debug mode")
-	configPath = flag.String("c", "app.yaml", "config path")
+	debugMode  = flag.Bool("d", false, "debug mode: true or false")
+	configPath = flag.String("c", "etc/app.yaml", "config path: ./etc/app.yaml")
 	//
 	appConfig *AppConfig
 )
 
 //加载服务端配置
 func init() {
+	flag.Parse()
 	err := LoadConfig(*configPath, &appConfig, false)
 	if nil != err {
 		log.Fatal(err.Error())
@@ -95,6 +102,20 @@ func GetDatabaseConfig() DatabaseConfig {
 
 func GetRedisConfig() RedisConfig {
 	return appConfig.Redis
+}
+
+func GetLogConfig() Log {
+	return appConfig.Log
+}
+
+//获取日志文件路径
+func (*Log) GetLogFilePath() string {
+	path := appConfig.Log.Path
+	endStr := path[len(path)-1:]
+	if "/" != endStr {
+		path = path + "/"
+	}
+	return fmt.Sprintf("%s/%s_%s.log", path, appConfig.AppName, utils.GetDatetimeYmd())
 }
 
 func LoadConfig(configPath string, configStruct interface{}, valid bool) error {

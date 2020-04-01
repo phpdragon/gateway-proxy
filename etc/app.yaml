@@ -9,13 +9,15 @@ database:
   type: mysql
   user: root
   password: root1234
-  host: 127.0.0.1:3306
+  host: 172.16.39.19:3306
   dbname: db_gateway_proxy
   charset: utf8
 redis:
   host: 172.16.1.120:16379
   password:
   db: 0
+log:
+  path: log
 
 handlers:
   - url: /.*

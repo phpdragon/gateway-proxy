@@ -10,12 +10,12 @@ import (
 // error logger
 var errorLogger *zap.Logger
 
-func init() {
-	//TODO:从配置中获取
-	fileName := "zap.log"
-
+/**
+ *TODO: 代码组织形式要优化一下，使用init进行初始化
+ */
+func InitLog(filename string) {
 	fileWriter := zapcore.AddSync(&lumberjack.Logger{
-		Filename:   fileName,
+		Filename:   filename,
 		MaxSize:    1024, // megabytes
 		MaxBackups: 3,
 		MaxAge:     7, //days

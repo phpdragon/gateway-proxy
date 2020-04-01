@@ -28,6 +28,7 @@ var (
 func init() {
 	initSignalHandle()
 	initDB()
+	iniLog()
 }
 
 func initDB() {
@@ -42,6 +43,11 @@ func initDB() {
 	}
 
 	log.Println("Init db success. host: ", dataSource)
+}
+
+func iniLog()  {
+	logConfig := core.GetLogConfig()
+	logger.InitLog(logConfig.GetLogFilePath())
 }
 
 /**
