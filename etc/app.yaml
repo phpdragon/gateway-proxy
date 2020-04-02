@@ -18,7 +18,8 @@ redis:
   db: 0
 log:
   #相对于项目部署目录的路径 => project_dir/log
-  path: logxxx
+  #或者绝对路径目录
+  path: log
 
 handlers:
   - url: /.*
