@@ -51,11 +51,15 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 
  Choose a command run in gateway_proxy:
 
-  deps      Install missing dependencies.
-  build     Compile the binary.
-  clean     Clean build files. Runs `go clean` internally.
-  package   Package the app
-  deply     Deply package to server site
+ ############################################
+  Go项目编译脚本
+  参考：https  //studygolang.com/articles/14919?fr=sidebar
+ ############################################
+  deps          Install missing dependencies.
+  build         Compile the binary.
+  clean         Clean build files. Runs `go clean` internally.
+  package       Package the app
+  deploy        Deploy package to server site
 ```
 
 2.启动服务
