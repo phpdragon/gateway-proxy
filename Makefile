@@ -1,5 +1,10 @@
 include .env
 
+##############################################
+## Go项目编译脚本
+## 参考：https://studygolang.com/articles/14919?fr=sidebar
+##############################################
+
 PROJECT_NAME=$(shell basename "$(PWD)")
 
 # Go related variables.
@@ -27,7 +32,7 @@ deps:
 	$(GO_CMD) get go.uber.org/zap
 	$(GO_CMD) get go.uber.org/zap/zapcore
 	@echo "Checking any missing dependencies is over!"
-	@echo ""
+	@echo
 
 ## build: Compile the binary.
 build: clean
@@ -36,7 +41,7 @@ build: clean
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO_CMD) build -o $(APP_BIN_DIR)/$(PROJECT_NAME) -a -x -v $(GO_FILES)
 	@-chmod a+x -R $(APP_BIN_DIR)/*
 	@echo "Compile the complete!"
-	@echo ""
+	@echo
 
 ## clean: Clean build files. Runs `go clean` internally.
 clean:
@@ -44,24 +49,24 @@ clean:
 	@$(GO_CMD) clean
 	@-rm -f $(APP_BIN_DIR)/$(PROJECT_NAME)
 	@echo "Clean build cache over!"
-	@echo ""
+	@echo
 
 ## package: Package the app
 package: build
 	@echo "Taring project package..."
 	@-tar -czvf $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz -C $(CURRENT_DIR) bin etc log favicon.ico LICENSE README*.md
 	@echo "Taring project package over!"
-	@echo ""
+	@echo
 
-## deply: Deply package to server site
-deply:
-	#scp db_svr im@192.168.251.53:/home/im/bin/db/
+## deploy: Deploy package to server site
+deploy: package
+	scp $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz root@192.168.1.2:/data/server/
 
 .PHONY: help
 all: help
 help: Makefile
 	@echo
-	@echo "Choose a command run in "$(PROJECT_NAME)":"
+	@echo " Choose a command run in "$(PROJECT_NAME)":"
 	@echo
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
