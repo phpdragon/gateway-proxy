@@ -1,4 +1,4 @@
-# gateway-proxy
+# gateway_proxy
 
 #### 介绍
 转发代理

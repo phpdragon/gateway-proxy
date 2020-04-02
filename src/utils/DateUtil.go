@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -22,5 +21,11 @@ func GetCurrentTimeNano() int64 {
 
 func GetDatetimeYmd() string {
 	now := time.Now()
-	return fmt.Sprintf("%d%d%d",now.Year(),now.Month(),now.Day())
+	return now.Format("20060102")
+}
+
+//时间原点：2006-01-02 15:04:05
+func GetDatetimeYmdHis() string {
+	now := time.Now()
+	return now.Format("20060102150405")
 }
