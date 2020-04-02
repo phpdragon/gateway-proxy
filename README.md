@@ -86,8 +86,7 @@ INFO: the app gateway_proxy is running , pid:727 !
 1. eureka-client 还有部分功能未实现
 2. 需要添加日志上报功能
 3. 抽离功能部分成为代码库、代码优化
-4. 启动、编译、部署脚本
-5. 测试用例编写
+4. 测试用例编写
 
 #### 参与贡献
 
