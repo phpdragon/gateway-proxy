@@ -21,6 +21,7 @@ import (
 )
 
 var (
+	//根目录为执行可执行文件命令的所在目录： favicon.ico => $(pwd)/favicon.ico
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
 )
 
@@ -45,7 +46,7 @@ func initDB() {
 	log.Println("Init db success. host: ", dataSource)
 }
 
-func iniLog()  {
+func iniLog() {
 	logConfig := core.GetLogConfig()
 	logger.InitLog(logConfig.GetLogFilePath())
 }
