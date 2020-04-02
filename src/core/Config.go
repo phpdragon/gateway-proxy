@@ -65,8 +65,8 @@ type Log struct {
 
 var (
 	//https://studygolang.com/articles/4490
-	debugMode  = flag.Bool("d", false, "debug mode: true or false")
-	configPath = flag.String("c", "../etc/app.yaml", "Config file path relative to the current path, like this ../etc/app.yaml")
+	debugMode  = flag.Bool("d", false, "Debug mode: true or false")
+	configPath = flag.String("c", "../etc/app.yaml", "Config path: like this ../etc/app.yaml or absolute path")
 	//cd
 	appConfig *AppConfig
 )
