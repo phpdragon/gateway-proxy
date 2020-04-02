@@ -40,6 +40,9 @@ STOPED_AGAIN_TIP="${WARN_TIP_PREFIX} ${STOPED_TIP_COM}, please don't try again!"
 #
 KILL_TIP="${INFO_TIP_PREFIX} exec kill ${APP_NAME_COM} process!"
 
+# 进入app根目录下
+cd "${APP_ROOT_DIR}" || exit 1
+
 start() {
   check_nohup
   check_bin_exist
@@ -168,24 +171,22 @@ restart() {
 case $1 in
 'start')
   start
-  return_curr_dir
   ;;
 'stop')
   stop
-  return_curr_dir
   ;;
 'restart')
   restart
-  return_curr_dir
   ;;
 'status')
   check_app_status
-  return_curr_dir
   ;;
 *)
   echo "USAGE:$0 {start|stop|restart|status}"
   exit 1
   ;;
 esac
+
+return_curr_dir
 
 exit 0
