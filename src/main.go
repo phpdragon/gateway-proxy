@@ -136,7 +136,7 @@ func main() {
 		},
 		StatusPageURL:  statusPageURL,
 		HealthCheckUrl: healthCheckUrl,
-	}) // start eurekaClient, register、heartbeat、refresh
+	},logger.GetLogger()) // start eurekaClient, register、heartbeat、refresh
 	eurekaClient.Start()
 
 	//监听日志级别设置

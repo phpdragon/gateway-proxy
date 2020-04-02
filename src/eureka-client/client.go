@@ -1,6 +1,7 @@
 package eureka_client
 
 import (
+	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
@@ -23,6 +24,8 @@ type EurekaClient struct {
 	autoInc *AutoInc
 	//
 	cache map[string]interface{}
+	//日志对象
+	log *zap.Logger
 }
 
 // Start 启动时注册客户端，并后台刷新服务列表，以及心跳
@@ -40,6 +43,7 @@ func (client *EurekaClient) Start() {
 		return
 	}
 	log.Println("Register application instance successful")
+
 	// 刷新服务列表
 	go client.refresh()
 	// 心跳
@@ -53,9 +57,9 @@ func (client *EurekaClient) refresh() {
 	for {
 		if client.Running {
 			if err := client.doRefresh(); err != nil {
-				log.Println(err)
+				client.log.Error(err.Error())
 			} else {
-				log.Println("Refresh application instance successful")
+				client.log.Info("Refresh application instance successful")
 			}
 		} else {
 			break
@@ -70,9 +74,9 @@ func (client *EurekaClient) heartbeat() {
 	for {
 		if client.Running {
 			if err := client.doHeartbeat(); err != nil {
-				log.Println(err)
+				client.log.Error(err.Error())
 			} else {
-				log.Println("Heartbeat application instance successful")
+				client.log.Info("Heartbeat application instance successful")
 			}
 		} else {
 			break
@@ -123,10 +127,10 @@ func (client *EurekaClient) handleSignal() {
 	for {
 		switch <-client.signalChan {
 		case syscall.SIGINT:
-			println("Receive exit signal, client instance going to de-egisterdd")
+			println("Receive exit signal, client instance going to de-egister")
 			fallthrough
 		case syscall.SIGKILL:
-			println("Receive exit signal, client instance going to de-egister123123")
+			println("Receive exit signal, client instance going to de-egister")
 			fallthrough
 		case syscall.SIGTERM:
 			log.Println("Receive exit signal, client instance going to de-egister")
@@ -142,10 +146,14 @@ func (client *EurekaClient) handleSignal() {
 }
 
 // NewClient 创建客户端
-func NewClient(config *Config) *EurekaClient {
+func NewClient(config *Config, log * zap.Logger) *EurekaClient {
 	defaultConfig(config)
 	config.instance = NewInstance(getLocalIP(), config)
-	return &EurekaClient{Config: config}
+
+	client := &EurekaClient{Config: config}
+	client.log = log
+
+	return client
 }
 
 func defaultConfig(config *Config) {
