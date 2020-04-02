@@ -120,7 +120,7 @@ func main() {
 	var healthCheckUrl = "/actuator/health"
 
 	// create eureka client
-	var eurekaClient = eureka.NewClient(&eureka.Config{
+	var eurekaClient = eureka.NewClientWithLog(&eureka.Config{
 		DefaultZone:           "http://172.16.1.155:8761/eureka/",
 		App:                   appConfig.AppName,
 		Port:                  10000,

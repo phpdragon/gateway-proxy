@@ -25,7 +25,7 @@ type EurekaClient struct {
 	//
 	cache map[string]interface{}
 	//日志对象
-	log *zap.Logger
+	logger *ClientLogger
 }
 
 // Start 启动时注册客户端，并后台刷新服务列表，以及心跳
@@ -57,9 +57,9 @@ func (client *EurekaClient) refresh() {
 	for {
 		if client.Running {
 			if err := client.doRefresh(); err != nil {
-				client.log.Error(err.Error())
+				client.logger.Error(err.Error())
 			} else {
-				client.log.Info("Refresh application instance successful")
+				client.logger.Info("Refresh application instance successful")
 			}
 		} else {
 			break
@@ -74,9 +74,9 @@ func (client *EurekaClient) heartbeat() {
 	for {
 		if client.Running {
 			if err := client.doHeartbeat(); err != nil {
-				client.log.Error(err.Error())
+				client.logger.Error(err.Error())
 			} else {
-				client.log.Info("Heartbeat application instance successful")
+				client.logger.Info("Heartbeat application instance successful")
 			}
 		} else {
 			break
@@ -146,12 +146,23 @@ func (client *EurekaClient) handleSignal() {
 }
 
 // NewClient 创建客户端
-func NewClient(config *Config, log * zap.Logger) *EurekaClient {
+func NewClient(config *Config) *EurekaClient {
 	defaultConfig(config)
 	config.instance = NewInstance(getLocalIP(), config)
 
 	client := &EurekaClient{Config: config}
-	client.log = log
+	client.logger = nil
+
+	return client
+}
+
+// NewClient 创建客户端
+func NewClientWithLog(config *Config, zapLog * zap.Logger) *EurekaClient {
+	defaultConfig(config)
+	config.instance = NewInstance(getLocalIP(), config)
+
+	client := &EurekaClient{Config: config}
+	client.logger = NewLogAgent(zapLog)
 
 	return client
 }
