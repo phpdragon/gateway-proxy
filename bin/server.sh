@@ -40,7 +40,7 @@ STOPED_AGAIN_TIP="${WARN_TIP_PREFIX} ${STOPED_TIP_COM}, please don't try again!"
 #
 KILL_TIP="${INFO_TIP_PREFIX} exec kill ${APP_NAME_COM} process!"
 
-# 进入app根目录下
+# 进入app根目录下,解决程序中一些资源路径问题
 cd "${APP_ROOT_DIR}" || exit 1
 
 start() {
