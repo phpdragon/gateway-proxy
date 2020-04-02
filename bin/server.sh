@@ -19,7 +19,7 @@ NOHUT_LOG_FILE="${APP_ROOT_DIR}/log/nohup.log"
 NOHUP_APP_BIN_FILE=$(whereis nohup | awk '{print $2}')
 #
 APP_START_CMD="${NOHUP_APP_BIN_FILE} ${APP_BIN_FILE} -c ${APP_CONF_FILE} > ${NOHUT_LOG_FILE} 2>&1 &"
-CHECK_PID_CMD="ps aux | grep \"${APP_NAME}\" | grep -v grep | awk '{print \$2}'"
+CHECK_PID_CMD="ps aux | grep '${APP_BIN_FILE}' | grep -v grep | awk '{print \$2}'"
 #
 #提示文案
 APP_NAME_COM="\033[31m${APP_NAME}\033[0m"
