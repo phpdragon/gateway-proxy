@@ -66,7 +66,7 @@ type Instance struct {
 
 // Port 端口
 type Port struct {
-	Port    int    `xml:",chardata" json:"$"`
+	Port int `xml:",chardata" json:"$"`
 	// true|false
 	Enabled string `xml:"enabled,attr" json:"@enabled"`
 }
@@ -74,8 +74,8 @@ type Port struct {
 // DataCenterInfo 数据中心信息
 type DataCenterInfo struct {
 	// MyOwn | Amazon
-	Name     string              `xml:"name" json:"name"`
-	Class    string              `xml:"class,attr" json:"@class"`
+	Name  string `xml:"name" json:"name"`
+	Class string `xml:"class,attr" json:"@class"`
 	// metadata is only required if name is Amazon
 	Metadata *DataCenterMetadata `xml:"metadata,omitempty" json:"metadata,omitempty"`
 }

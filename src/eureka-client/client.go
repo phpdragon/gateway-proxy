@@ -40,7 +40,7 @@ func NewClient(config *Config) *EurekaClient {
 }
 
 // NewClient 创建客户端
-func NewClientWithLog(config *Config, zapLog * zap.Logger) *EurekaClient {
+func NewClientWithLog(config *Config, zapLog *zap.Logger) *EurekaClient {
 	defaultConfig(config)
 	config.instance = NewInstance(getLocalIP(), config)
 

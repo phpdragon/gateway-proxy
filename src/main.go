@@ -5,10 +5,10 @@ import (
 	ctl "./controllers"
 	"./core"
 	logger "./core/log"
-	eureka "gitee.com/go-eurake-client"
 	"./logic"
 	"./utils"
 	"fmt"
+	eureka "gitee.com/go-eurake-client"
 	"github.com/astaxie/beego/orm"
 	"io/ioutil"
 	"log"
@@ -45,7 +45,7 @@ func initDB() {
 	log.Println("Init db success. host: ", dataSource)
 }
 
-func iniLog()  {
+func iniLog() {
 	logConfig := core.GetLogConfig()
 	logger.InitLog(logConfig.GetLogFilePath())
 }
@@ -118,7 +118,7 @@ func main() {
 	var statusPageURL = "/actuator/info"
 	var healthCheckUrl = "/actuator/health"
 
-	clientConfig,_ := eureka.LoadConfig("etc/app.yaml",false)
+	clientConfig, _ := eureka.LoadConfig("etc/app.yaml", false)
 
 	// create eureka client
 	var eurekaClientX = eureka.NewClientWithLog(clientConfig, logger.GetLogger())

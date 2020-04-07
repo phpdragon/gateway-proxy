@@ -4,11 +4,11 @@ import (
 	"../consts"
 	"../core"
 	log "../core/log"
-	eureka "gitee.com/go-eurake-client"
 	"../models"
 	"../utils"
 	"encoding/json"
 	"errors"
+	eureka "gitee.com/go-eurake-client"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -43,7 +43,7 @@ func HandleHttpRequest(req *http.Request, eurekaClient *eureka.EurekaClient) (in
 	}
 
 	//获取真实的链接
-	httpUrl,err := eurekaClient.GetRealHttpUrl(route.ServiceUrl)
+	httpUrl, err := eurekaClient.GetRealHttpUrl(route.ServiceUrl)
 	if nil != err {
 		return nil, err
 	}

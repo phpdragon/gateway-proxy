@@ -110,21 +110,21 @@ eureka:
     ###
     ###########
     countryId: 0
-#    #指定服务实例所属数据中心
-#    dataCenterInfo:
-#      name: MyOwn
-#      metadata:
-#        amiLaunchIndex:
-#        localHostname:
-#        availabilityZone:
-#        instanceId:
-#        publicIpv4:
-#        publicHostname:
-#        amiManifestPath:
-#        localIpv4:
-#        hostname:
-#        amiId:
-#        instanceType:
+    #指定服务实例所属数据中心
+    #dataCenterInfo:
+    #  name: MyOwn
+    #  metadata:
+    #    amiLaunchIndex:
+    #    localHostname:
+    #    availabilityZone:
+    #    instanceId:
+    #    publicIpv4:
+    #    publicHostname:
+    #    amiManifestPath:
+    #    localIpv4:
+    #    hostname:
+    #    amiId:
+    #    instanceType:
     metadata:
       xxx: xxx
       acc: xxx
