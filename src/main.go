@@ -55,12 +55,11 @@ func iniLog() {
  *
  */
 func initSignalHandle() {
-	go func() {
-		for {
-			ch := make(chan os.Signal)
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 
-			signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
-			sig := <-ch
+	go func() {
+		for sig := range ch {
 			fmt.Println("Signal received:", sig, " \n")
 			switch sig {
 			case syscall.SIGHUP:
