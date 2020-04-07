@@ -22,6 +22,7 @@ import (
 
 var (
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
+    gEurekaClient  *eureka.EurekaClient
 )
 
 //初始化方法
@@ -63,16 +64,17 @@ func initSignalHandle() {
 			fmt.Println("Signal received:", sig, " \n")
 			switch sig {
 			case syscall.SIGHUP:
-				println("Receive exit signal, client instance going to de-egister")
+				println("Receive exit signal, client instance going to de-register")
 				fallthrough
 			case syscall.SIGINT:
-				println("Receive exit signal, client instance going to de-egister")
+				println("Receive exit signal, client instance going to de-register")
 				fallthrough
 			case syscall.SIGKILL:
-				println("Receive exit signal, client instance going to de-egister")
+				println("Receive exit signal, client instance going to de-register")
 				fallthrough
 			case syscall.SIGTERM:
-				log.Println("Receive exit signal, client instance going to de-egister")
+				log.Println("Receive exit signal, client instance going to de-register")
+				shutdown()
 				os.Exit(0)
 			}
 		}
@@ -118,11 +120,12 @@ func main() {
 	var statusPageURL = "/actuator/info"
 	var healthCheckUrl = "/actuator/health"
 
+	//clientConfig, _ := eureka.LoadConfig("D:\\IdeaProjects\\golang\\gateway_proxy\\etc\\app.yaml", false)
 	clientConfig, _ := eureka.LoadConfig("etc/app.yaml", false)
 
 	// create eureka client
-	var eurekaClientX = eureka.NewClientWithLog(clientConfig, logger.GetLogger())
-	eurekaClientX.Run()
+	gEurekaClient = eureka.NewClientWithLog(clientConfig, logger.GetLogger())
+	gEurekaClient.Run()
 
 	//监听日志级别设置
 	http.HandleFunc("/handle/level", logger.GetAtomicLevel().ServeHTTP)
@@ -143,7 +146,9 @@ func main() {
 		}
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		indexHandler(writer, request, eurekaClientX)
+		gEurekaClient.GetNextServerFromEureka("EUREKA-SERVER")
+
+		indexHandler(writer, request, gEurekaClient)
 	})
 
 	log.Printf("Listening on port %d", appConfig.Server.Port)
@@ -152,6 +157,12 @@ func main() {
 	// start http server
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Server.Port), nil); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func shutdown(){
+	if nil != gEurekaClient {
+		gEurekaClient.Shutdown()
 	}
 }
 

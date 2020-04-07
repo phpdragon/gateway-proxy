@@ -1,6 +1,7 @@
 package eureka_client
 
 import (
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"log"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 // EurekaClient客户端
@@ -20,8 +22,8 @@ type EurekaClient struct {
 	Config     *Config
 	// eureka服务中注册的应用
 	Applications *Applications
-	//TODO:增器
-	autoInc *AutoInc
+	//自增器
+	autoInc *atomic.Int64
 	//
 	cache map[string]interface{}
 	//日志对象
@@ -35,6 +37,7 @@ func NewClient(config *Config) *EurekaClient {
 
 	client := &EurekaClient{Config: config}
 	client.logger = nil
+	client.autoInc = atomic.NewInt64(1)
 
 	return client
 }
@@ -46,6 +49,7 @@ func NewClientWithLog(config *Config, zapLog *zap.Logger) *EurekaClient {
 
 	client := &EurekaClient{Config: config}
 	client.logger = NewLogAgent(zapLog)
+	client.autoInc = atomic.NewInt64(1)
 
 	return client
 }
@@ -78,9 +82,6 @@ func (client *EurekaClient) Start() {
 	client.mutex.Lock()
 	client.Running = true
 	client.mutex.Unlock()
-
-	//TODO: 设值自增器
-	client.autoInc = NewAutoInc(0, 1)
 
 	// 注册
 	if err := client.doRegister(); err != nil {
@@ -172,13 +173,13 @@ func (client *EurekaClient) handleSignal() {
 	for {
 		switch <-client.signalChan {
 		case syscall.SIGINT:
-			println("Receive exit signal, client instance going to de-egister")
+			println("Receive exit signal, client instance going to de-register")
 			fallthrough
 		case syscall.SIGKILL:
-			println("Receive exit signal, client instance going to de-egister")
+			println("Receive exit signal, client instance going to de-register")
 			fallthrough
 		case syscall.SIGTERM:
-			log.Println("Receive exit signal, client instance going to de-egister")
+			log.Println("Receive exit signal, client instance going to de-register")
 			err := client.doUnRegister()
 			if err != nil {
 				log.Println(err.Error())
@@ -208,10 +209,12 @@ func (client *EurekaClient) GetNextServerFromEureka(appName string) Instance {
 		client.cache = appMap
 	}
 
-	appList := client.cache[appName].(map[int]interface{})
-	var incrementAndGet = client.autoInc.IncrementAndGet()
-	var index = incrementAndGet % len(appList)
-	return appList[index].(Instance)
+	appMap := client.cache[appName].(map[int]interface{})
+
+	//自增器
+	var index = client.autoInc.Inc() % int64(len(appMap))
+	intNum := *(*int)(unsafe.Pointer(&index))
+	return appMap[intNum].(Instance)
 }
 
 //TODO: 优化 比如https
