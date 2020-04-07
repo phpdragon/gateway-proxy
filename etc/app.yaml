@@ -31,26 +31,10 @@ eureka:
     fetchRegistry: true
     #是否过滤掉非up实例，默认为false
     filterOnlyUpInstances: true
-    #指示此实例是否应将其信息注册到eureka服务器以供其他服务发现，默认为false
+    #此实例是否应将其信息注册到eureka服务器以供其他服务发现，默认为false
     registerWithEureka: true
-    #client在shutdown情况下，是否显示从注册中心注销
+    #client在shutdown情况下，是否显示从注册中心注销，默认为false
     shouldUnregisterOnShutdown: true
-    #http代理
-    proxy: http://172.16.1.120:8118
-    ####
-    #读取Eureka Server 超时时间（s），默认8秒
-    eurekaServerReadTimeoutSeconds: 8
-    #连接到 Eureka Server 空闲连接的超时时间（s），默认30
-    eurekaConnectionIdleTimeoutSeconds: 30
-    #获取从eureka客户端到eureka服务器主机允许的连接总数，默认50个
-    eurekaServerTotalConnectionsPerHost: 50
-    #每个host的idle状态的最大连接数目
-    eurekaServerTotalIdleConnectionsPerHost: 5
-    #获取从eureka客户端到所有eureka服务器的连接总数,默认200个
-    eurekaServerTotalIdleConnections: 200
-    #####
-    #指示eureka客户端是否应使用DNS机制来获取要与之通信的eureka服务器列表。当DNS名称更新为具有其他服务器时，eureka客户端轮询eurekaServiceUrlPollIntervalSeconds中指定的信息后立即使用该信息。
-    use-dns-for-fetchingService-urls: false
   instance:
     #该服务实例在注册中心的唯一实例ID,为空则默认本地ip和服务端口
     #instanceId: ${spring.cloud.client.ip-address}:${server.port}
