@@ -22,7 +22,7 @@ import (
 
 var (
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
-    gEurekaClient  *eureka.EurekaClient
+	gEurekaClient  *eureka.EurekaClient
 )
 
 //初始化方法
@@ -146,8 +146,6 @@ func main() {
 		}
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		gEurekaClient.GetNextServerFromEureka("EUREKA-SERVER")
-
 		indexHandler(writer, request, gEurekaClient)
 	})
 
@@ -160,7 +158,7 @@ func main() {
 	}
 }
 
-func shutdown(){
+func shutdown() {
 	if nil != gEurekaClient {
 		gEurekaClient.Shutdown()
 	}
