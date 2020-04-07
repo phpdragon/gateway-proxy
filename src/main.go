@@ -5,7 +5,7 @@ import (
 	ctl "./controllers"
 	"./core"
 	logger "./core/log"
-	eureka "./eureka-client"
+	eureka "gitee.com/go-eurake-client"
 	"./logic"
 	"./utils"
 	"fmt"
@@ -118,25 +118,11 @@ func main() {
 	var statusPageURL = "/actuator/info"
 	var healthCheckUrl = "/actuator/health"
 
+	clientConfig,_ := eureka.LoadConfig("etc/app.yaml",false)
+
 	// create eureka client
-	var eurekaClient = eureka.NewClient(&eureka.Config{
-		DefaultZone:           "http://172.16.1.155:8761/eureka/",
-		App:                   appConfig.AppName,
-		Port:                  10000,
-		RenewalIntervalInSecs: 10,
-		DurationInSecs:        30,
-		Metadata: map[string]interface{}{
-			"VERSION":              "0.1.0",
-			"NODE_GROUP_ID":        0,
-			"PRODUCT_CODE":         "DEFAULT",
-			"PRODUCT_VERSION_CODE": "DEFAULT",
-			"PRODUCT_ENV_CODE":     "DEFAULT",
-			"SERVICE_VERSION_CODE": "DEFAULT",
-		},
-		StatusPageURL:  statusPageURL,
-		HealthCheckUrl: healthCheckUrl,
-	}) // start eurekaClient, register、heartbeat、refresh
-	eurekaClient.Start()
+	var eurekaClientX = eureka.NewClientWithLog(clientConfig, logger.GetLogger())
+	eurekaClientX.Run()
 
 	//监听日志级别设置
 	http.HandleFunc("/handle/level", logger.GetAtomicLevel().ServeHTTP)
@@ -157,7 +143,7 @@ func main() {
 		}
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		indexHandler(writer, request, eurekaClient)
+		indexHandler(writer, request, eurekaClientX)
 	})
 
 	log.Printf("Listening on port %d", appConfig.Server.Port)

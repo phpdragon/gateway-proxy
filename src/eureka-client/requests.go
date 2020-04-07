@@ -63,22 +63,22 @@ type Result struct {
 	Err  error
 }
 
-// HttpGet http `GET` 请求
+// Get httpclent `GET` 请求
 func HttpGet(url string) *HttpClient {
 	return newClient(url, http.MethodGet, nil)
 }
 
-// HttpPost http `POST` 请求
+// Post httpclent `POST` 请求
 func HttpPost(url string) *HttpClient {
 	return newClient(url, http.MethodPost, nil)
 }
 
-// HttpPut http `PUT` 请求
+// Put httpclent `PUT` 请求
 func HttpPut(url string) *HttpClient {
 	return newClient(url, http.MethodPut, nil)
 }
 
-// HttpDelete http `DELETE` 请求
+// Delete httpclent `DELETE` 请求
 func HttpDelete(url string) *HttpClient {
 	return newClient(url, http.MethodDelete, nil)
 }

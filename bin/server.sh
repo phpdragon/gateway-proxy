@@ -19,7 +19,7 @@ NOHUT_LOG_FILE="${APP_ROOT_DIR}/log/nohup.log"
 NOHUP_APP_BIN_FILE=$(whereis nohup | awk '{print $2}')
 #
 APP_START_CMD="${NOHUP_APP_BIN_FILE} ${APP_BIN_FILE} -c ${APP_CONF_FILE} > ${NOHUT_LOG_FILE} 2>&1 &"
-CHECK_PID_CMD="ps aux | grep \"${APP_NAME}\" | grep -v grep | awk '{print \$2}'"
+CHECK_PID_CMD="ps aux | grep '${APP_BIN_FILE}' | grep -v grep | awk '{print \$2}'"
 #
 #提示文案
 APP_NAME_COM="\033[31m${APP_NAME}\033[0m"
@@ -39,6 +39,9 @@ STOPED_TIP="${INFO_TIP_PREFIX} ${STOPED_TIP_COM}!"
 STOPED_AGAIN_TIP="${WARN_TIP_PREFIX} ${STOPED_TIP_COM}, please don't try again!"
 #
 KILL_TIP="${INFO_TIP_PREFIX} exec kill ${APP_NAME_COM} process!"
+
+# 进入app根目录下,解决程序中一些资源路径问题
+cd "${APP_ROOT_DIR}" || exit 1
 
 start() {
   check_nohup
@@ -168,24 +171,22 @@ restart() {
 case $1 in
 'start')
   start
-  return_curr_dir
   ;;
 'stop')
   stop
-  return_curr_dir
   ;;
 'restart')
   restart
-  return_curr_dir
   ;;
 'status')
   check_app_status
-  return_curr_dir
   ;;
 *)
   echo "USAGE:$0 {start|stop|restart|status}"
   exit 1
   ;;
 esac
+
+return_curr_dir
 
 exit 0

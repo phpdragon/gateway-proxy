@@ -1,11 +1,15 @@
-# gateway-proxy
+# gateway_proxy
 
 #### 介绍
 转发代理
 
+------------------------------------
+
 #### 软件架构
 软件架构说明
 
+
+------------------------------------
 
 #### 安装教程
 
@@ -34,22 +38,55 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 2.  xxxx
 3.  xxxx
 
+
+------------------------------------
+
+
 #### 使用说明
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1.编译打包
+```shell script
+[root@localhost gateway_proxy]# yum install -y make
+[root@localhost gateway_proxy]# make help
+
+ Choose a command run in gateway_proxy:
+
+ ############################################
+  Go项目编译脚本
+  参考：https  //studygolang.com/articles/14919?fr=sidebar
+ ############################################
+  deps          Install missing dependencies.
+  build         Compile the binary.
+  clean         Clean build files. Runs `go clean` internally.
+  package       Package the app
+  deploy        Deploy package to server site
+```
+
+2.启动服务
+```shell script
+[root@localhost gateway_proxy]# dos2unix bin/*.sh
+
+[root@localhost gateway_proxy]# bin/server.sh
+USAGE:bin/server.sh {start|stop|restart|status}
+
+[root@localhost gateway_proxy]# bin/server.sh status
+INFO: the app gateway_proxy is running , pid:727 !
+```
+
+------------------------------------
+
 
 #### 压力测试
 1. echo '{"a":"b"}' > data.json
 2. ab -c 10 -t 60 -T 'application/json' -p data.json http://192.16.1.2:8080/cfg/testCtl/demoAction
 
+------------------------------------
+
 #### TODO
-1. eureka-client 还有部分功能未实现
-2. 需要添加日志上报功能
-3. 抽离功能部分成为代码库、代码优化
-4. 启动、编译、部署脚本
-5. 测试用例编写
+1. 需要添加日志上报功能
+2. 抽离功能部分成为代码库、代码优化
+3. 测试用例编写
+
 
 #### 参与贡献
 

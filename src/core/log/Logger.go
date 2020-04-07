@@ -49,6 +49,10 @@ func InitLog(filename string) {
 	defer errorLogger.Sync()
 }
 
+func GetLogger() * zap.Logger{
+	return errorLogger
+}
+
 func GetAtomicLevel() zap.AtomicLevel {
 	return zap.NewAtomicLevel()
 }

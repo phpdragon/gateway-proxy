@@ -17,7 +17,124 @@ redis:
   password:
   db: 0
 log:
-  path: log
+  #相对于项目部署目录的路径 => project_dir/log
+  #或者绝对路径目录
+  path: log/
+
+eureka:
+  serviceUrl:
+    defaultZone: http://172.16.1.155:8761/eureka/
+  client:
+    #指示从eureka服务器获取注册表信息的频率（s）
+    registryFetchIntervalSeconds: 30
+    #更新实例信息的变化到Eureka服务端的间隔时间，（s）
+    instanceInfoReplicationIntervalSeconds: 30
+    #初始化实例信息到Eureka服务端的间隔时间，（s）
+    initialInstanceInfoReplicationIntervalSeconds: 40
+    #询问Eureka Server信息变化的时间间隔（s），默认为300秒
+    eurekaServiceUrlPollIntervalSeconds: 300
+    #客户端是否获取eureka服务器注册表上的注册信息，默认为true
+    fetchRegistry: true
+    #是否过滤掉非up实例，默认为true
+    filterOnlyUpInstances: true
+    #指示此实例是否应将其信息注册到eureka服务器以供其他服务发现，默认为false
+    registerWithEureka: true
+    #实例是否使用同一zone里的eureka服务器，默认为true，理想状态下，eureka客户端与服务端是在同一zone下
+    preferSameZoneEureka: ture
+    #是否记录eureka服务器和客户端之间在注册表的信息方面的差异，默认为false
+    logDeltaDiff: false
+    #指示eureka客户端是否禁用增量提取
+    disableDelta: false
+    #逗号分隔的区域列表，提取eureka注册表信息
+    fetchRemoteRegionsRegistry:
+    #获取此实例所在的区域（在AWS数据中心中使用）。
+    region: usEast-1
+    #client 在初始化阶段是否强行注册到注册中心
+    shouldEnforceRegistrationAtInit: false
+    #client在shutdown情况下，是否显示从注册中心注销
+    shouldUnregisterOnShutdown: true
+
+    proxy:
+      #获取eureka server 的代理主机名
+      host:
+      #获取eureka server 的代理主机端口
+      port:
+      #获取eureka server 的代理用户名
+      userName:
+      #获取eureka server 的代理主机密码
+      password:
+
+    ####
+    #读取Eureka Server 超时时间（s），默认8秒
+    eurekaServer-read-timeoutSeconds: 8
+    #连接Eureka Server 超时时间（s），默认5秒
+    eurekaServerConnect-timeoutSeconds: 5
+    #指示客户端是否仅对单个VIP的注册表信息感兴趣，默认为null
+    registry-refreshSingle-vip-address: null
+    #心跳超时重试延迟时间的最大乘数值，默认10
+    heartbeatExecutorExponential-backOff-bound: 10
+    #指示eureka客户端是否应使用DNS机制来获取要与之通信的eureka服务器列表。当DNS名称更新为具有其他服务器时，eureka客户端轮询eurekaServiceUrlPollIntervalSeconds中指定的信息后立即使用该信息。
+    use-dns-for-fetchingService-urls: false
+    #客户端的状态更新到远程服务器上，默认为true
+    on-demand-updateStatusChange: true
+    #指示服务器是否可以将客户端请求重定向到备份服务器/集群。如果设置为false，则服务器将直接处理请求。如果设置为true，则可以将HTTP重定向发送到具有新服务器位置的客户端。
+    allow-redirects: false
+
+  instance:
+    #该服务实例在注册中心的唯一实例ID,为空则默认本地ip和服务端口
+    #instanceId: ${spring.cloud.client.ip-address}:${server.port}
+    #注册到注册中心的应用所属分组名称（AWS服务器）
+    appName: gateway-proxy
+    #是否优先使用服务实例的IP地址，相较于hostname
+    preferIpAddress: true
+    nonSecurePort: 8080
+    nonSecurePortEnabled: true
+    #HTTPS通信端口
+    securePort: 443
+    #是否启用HTTPS通信端口
+    securePortEnabled: false
+    #服务实例安全主机名称（HTTPS）
+    secureVirtualHostName:
+    #该服务实例非安全注解名称（HTTP）
+    virtualHostName:
+    ############
+    ###
+    ###########
+    #该服务实例的状态检查地址，相对地址
+    statusPageUrlPath: /actuator/info
+    #该服务实例的主页地址，相对地址
+    homePageUrlPath: /
+    #该服务实例的健康检查地址，相对地址
+    healthCheckUrlPath: /actuator/health
+    ############
+    ###
+    ###########
+    countryId: 0
+#    #指定服务实例所属数据中心
+#    dataCenterInfo:
+#      name: MyOwn
+#      metadata:
+#        amiLaunchIndex:
+#        localHostname:
+#        availabilityZone:
+#        instanceId:
+#        publicIpv4:
+#        publicHostname:
+#        amiManifestPath:
+#        localIpv4:
+#        hostname:
+#        amiId:
+#        instanceType:
+    metadata:
+      xxx: xxx
+      acc: xxx
+    leaseInfo:
+      #该服务实例向注册中心发送心跳间隔（30s）
+      renewalIntervalInSecs: 5
+      #指示eureka服务器在删除此实例之前收到最后一次心跳之后等待的时间（900s）
+      durationInSecs: 10
+    #指示是否应在eureka注册后立即启用实例以获取流量，不建议立即开启
+    instanceEnabledOnInit: false
 
 handlers:
   - url: /.*

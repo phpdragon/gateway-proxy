@@ -65,9 +65,9 @@ type Log struct {
 
 var (
 	//https://studygolang.com/articles/4490
-	debugMode  = flag.Bool("d", false, "debug mode: true or false")
-	configPath = flag.String("c", "etc/app.yaml", "config path: ./etc/app.yaml")
-	//
+	debugMode  = flag.Bool("d", false, "Debug mode: true or false")
+	configPath = flag.String("c", "etc/app.yaml", "Config path: like this ../etc/app.yaml or absolute path")
+	//cd
 	appConfig *AppConfig
 )
 
@@ -110,11 +110,7 @@ func GetLogConfig() Log {
 
 //获取日志文件路径
 func (*Log) GetLogFilePath() string {
-	path := appConfig.Log.Path
-	endStr := path[len(path)-1:]
-	if "/" != endStr {
-		path = path + "/"
-	}
+	path := strings.TrimRight(appConfig.Log.Path, "/")
 	return fmt.Sprintf("%s/%s_%s.log", path, appConfig.AppName, utils.GetDatetimeYmd())
 }
 

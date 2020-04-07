@@ -1,6 +1,7 @@
 package eureka_client
 
 import (
+	"go.uber.org/zap"
 	"log"
 	"os"
 	"os/signal"
@@ -23,6 +24,53 @@ type EurekaClient struct {
 	autoInc *AutoInc
 	//
 	cache map[string]interface{}
+	//日志对象
+	logger *ClientLogger
+}
+
+// NewClient 创建客户端
+func NewClient(config *Config) *EurekaClient {
+	defaultConfig(config)
+	config.instance = NewInstance(getLocalIP(), config)
+
+	client := &EurekaClient{Config: config}
+	client.logger = nil
+
+	return client
+}
+
+// NewClient 创建客户端
+func NewClientWithLog(config *Config, zapLog * zap.Logger) *EurekaClient {
+	defaultConfig(config)
+	config.instance = NewInstance(getLocalIP(), config)
+
+	client := &EurekaClient{Config: config}
+	client.logger = NewLogAgent(zapLog)
+
+	return client
+}
+
+func defaultConfig(config *Config) {
+	if config.DefaultZone == "" {
+		config.DefaultZone = "http://localhost:8761/eureka/"
+	}
+	if config.RenewalIntervalInSecs == 0 {
+		config.RenewalIntervalInSecs = 30
+	}
+	if config.RegistryFetchIntervalSeconds == 0 {
+		config.RegistryFetchIntervalSeconds = 15
+	}
+	if config.DurationInSecs == 0 {
+		config.DurationInSecs = 90
+	}
+	if config.App == "" {
+		config.App = "server"
+	} else {
+		config.App = strings.ToLower(config.App)
+	}
+	if config.Port == 0 {
+		config.Port = 80
+	}
 }
 
 // Start 启动时注册客户端，并后台刷新服务列表，以及心跳
@@ -40,6 +88,7 @@ func (client *EurekaClient) Start() {
 		return
 	}
 	log.Println("Register application instance successful")
+
 	// 刷新服务列表
 	go client.refresh()
 	// 心跳
@@ -53,9 +102,9 @@ func (client *EurekaClient) refresh() {
 	for {
 		if client.Running {
 			if err := client.doRefresh(); err != nil {
-				log.Println(err)
+				client.logger.Error(err.Error())
 			} else {
-				log.Println("Refresh application instance successful")
+				client.logger.Info("Refresh application instance successful")
 			}
 		} else {
 			break
@@ -70,9 +119,9 @@ func (client *EurekaClient) heartbeat() {
 	for {
 		if client.Running {
 			if err := client.doHeartbeat(); err != nil {
-				log.Println(err)
+				client.logger.Error(err.Error())
 			} else {
-				log.Println("Heartbeat application instance successful")
+				client.logger.Info("Heartbeat application instance successful")
 			}
 		} else {
 			break
@@ -123,10 +172,10 @@ func (client *EurekaClient) handleSignal() {
 	for {
 		switch <-client.signalChan {
 		case syscall.SIGINT:
-			println("Receive exit signal, client instance going to de-egisterdd")
+			println("Receive exit signal, client instance going to de-egister")
 			fallthrough
 		case syscall.SIGKILL:
-			println("Receive exit signal, client instance going to de-egister123123")
+			println("Receive exit signal, client instance going to de-egister")
 			fallthrough
 		case syscall.SIGTERM:
 			log.Println("Receive exit signal, client instance going to de-egister")
@@ -138,36 +187,6 @@ func (client *EurekaClient) handleSignal() {
 			}
 			os.Exit(0)
 		}
-	}
-}
-
-// NewClient 创建客户端
-func NewClient(config *Config) *EurekaClient {
-	defaultConfig(config)
-	config.instance = NewInstance(getLocalIP(), config)
-	return &EurekaClient{Config: config}
-}
-
-func defaultConfig(config *Config) {
-	if config.DefaultZone == "" {
-		config.DefaultZone = "http://localhost:8761/eureka/"
-	}
-	if config.RenewalIntervalInSecs == 0 {
-		config.RenewalIntervalInSecs = 30
-	}
-	if config.RegistryFetchIntervalSeconds == 0 {
-		config.RegistryFetchIntervalSeconds = 15
-	}
-	if config.DurationInSecs == 0 {
-		config.DurationInSecs = 90
-	}
-	if config.App == "" {
-		config.App = "server"
-	} else {
-		config.App = strings.ToLower(config.App)
-	}
-	if config.Port == 0 {
-		config.Port = 80
 	}
 }
 
