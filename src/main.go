@@ -2,7 +2,6 @@ package main
 
 import (
 	"./consts"
-	ctl "./controllers"
 	"./core"
 	logger "./core/log"
 	"./logic"
@@ -131,10 +130,10 @@ func main() {
 
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, ctl.ActuatorStatus(appConfig.Server.Port, appConfig.AppName), true)
+		writeJsonResponse(writer, request, eureka.ActuatorStatus(appConfig.Server.Port, appConfig.AppName), true)
 	})
 	http.HandleFunc(healthCheckUrl, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, ctl.ActuatorHealth(), true)
+		writeJsonResponse(writer, request, eureka.ActuatorHealth(), true)
 	})
 	http.HandleFunc("/favicon.ico", func(writer http.ResponseWriter, request *http.Request) {
 		_, err := writer.Write(gFaviconIco)
