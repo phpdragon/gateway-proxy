@@ -40,6 +40,7 @@ build: clean
 	#go build 参数说明 https://www.cnblogs.com/davygeek/p/6386035.html
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO_CMD) build -o $(APP_BIN_DIR)/$(PROJECT_NAME) -a -x -v $(GO_FILES)
 	@-chmod a+x -R $(APP_BIN_DIR)/*
+	@-dos2unix $(APP_BIN_DIR)/*.sh
 	@echo "Compile the complete!"
 	@echo
 

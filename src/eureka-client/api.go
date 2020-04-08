@@ -11,7 +11,7 @@ import (
 // Register 注册实例
 // POST /eureka/v2/apps/appID
 func Register(zone, app string, instance *Instance) error {
-	// Instance 服务实例
+	// InstanceConfig 服务实例
 	type InstanceInfo struct {
 		Instance *Instance `json:"instance"`
 	}
@@ -21,7 +21,7 @@ func Register(zone, app string, instance *Instance) error {
 
 	url := zone + "apps/" + app
 
-	// status: http.StatusNoContent
+	// status: httpclent.StatusNoContent
 	result := HttpPost(url).Json(info).Send().Status2xx()
 	if result.Err != nil {
 		return fmt.Errorf("Register application instance failed, error: %s", result.Err)
@@ -33,7 +33,7 @@ func Register(zone, app string, instance *Instance) error {
 // DELETE /eureka/v2/apps/appID/instanceID
 func UnRegister(zone, app, instanceID string) error {
 	url := zone + "apps/" + app + "/" + instanceID
-	// status: http.StatusNoContent
+	// status: httpclent.StatusNoContent
 	result := HttpDelete(url).Send().StatusOk()
 	if result.Err != nil {
 		return fmt.Errorf("UnRegister application instance failed, error: %s", result.Err)

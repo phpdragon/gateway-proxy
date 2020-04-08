@@ -19,7 +19,7 @@ func init() {
 
 //ORM 操作说明请查看 https://beego.me/docs/mvc/model/object.md
 func QueryAllActiveRoutes() (map[string]Route, error) {
-	if nil != routeMap{
+	if nil != routeMap {
 		return *routeMap, nil
 	}
 
@@ -36,6 +36,6 @@ func QueryAllActiveRoutes() (map[string]Route, error) {
 	for _, route := range routes {
 		dataMap[route.UrlPath] = route
 	}
-	routeMap = & dataMap
+	routeMap = &dataMap
 	return dataMap, nil
 }

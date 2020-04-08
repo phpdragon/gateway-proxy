@@ -110,11 +110,7 @@ func GetLogConfig() Log {
 
 //获取日志文件路径
 func (*Log) GetLogFilePath() string {
-	path := appConfig.Log.Path
-	endStr := path[len(path)-1:]
-	if "/" != endStr {
-		path = path + "/"
-	}
+	path := strings.TrimRight(appConfig.Log.Path, "/")
 	return fmt.Sprintf("%s/%s_%s.log", path, appConfig.AppName, utils.GetDatetimeYmd())
 }
 

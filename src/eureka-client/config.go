@@ -26,7 +26,7 @@ type Config struct {
 	instance *Instance
 }
 
-// Applications eureka服务端注册的apps
+// applications eureka服务端注册的apps
 type Applications struct {
 	VersionsDelta string        `xml:"versions__delta,omitempty" json:"versions__delta,omitempty"`
 	AppsHashcode  string        `xml:"apps__hashcode,omitempty" json:"apps__hashcode,omitempty"`
@@ -39,7 +39,7 @@ type Application struct {
 	Instances []Instance `xml:"instance" json:"instance"`
 }
 
-// Instance 服务实例
+// InstanceConfig 服务实例
 type Instance struct {
 	HostName                      string                 `xml:"hostName" json:"hostName"`
 	HomePageURL                   string                 `xml:"homePageUrl,omitempty" json:"homePageUrl,omitempty"`
@@ -66,14 +66,17 @@ type Instance struct {
 
 // Port 端口
 type Port struct {
-	Port    int    `xml:",chardata" json:"$"`
+	Port int `xml:",chardata" json:"$"`
+	// true|false
 	Enabled string `xml:"enabled,attr" json:"@enabled"`
 }
 
 // DataCenterInfo 数据中心信息
 type DataCenterInfo struct {
-	Name     string              `xml:"name" json:"name"`
-	Class    string              `xml:"class,attr" json:"@class"`
+	// MyOwn | Amazon
+	Name  string `xml:"name" json:"name"`
+	Class string `xml:"class,attr" json:"@class"`
+	// metadata is only required if name is Amazon
 	Metadata *DataCenterMetadata `xml:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
@@ -127,7 +130,7 @@ func NewInstance(ip string, config *Config) *Instance {
 		Metadata: config.Metadata,
 	}
 	instance.HomePageURL = fmt.Sprintf("http://%s:%d", ip, config.Port)
-	instance.StatusPageURL = fmt.Sprintf("http://%s:%d%d", ip, config.Port, config.StatusPageURL)
-	instance.HealthCheckURL = fmt.Sprintf("http://%s:%d%d", ip, config.Port, config.HealthCheckUrl)
+	instance.StatusPageURL = fmt.Sprintf("http://%s:%d%s", ip, config.Port, config.StatusPageURL)
+	instance.HealthCheckURL = fmt.Sprintf("http://%s:%d%s", ip, config.Port, config.HealthCheckUrl)
 	return instance
 }

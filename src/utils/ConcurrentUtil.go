@@ -3,7 +3,7 @@ package utils
 import "sync"
 
 //并发执行
-func ConcurrentRun(n int,function func(no int)) {
+func ConcurrentRun(n int, function func(no int)) {
 	wg := new(sync.WaitGroup)
 	for i := 0; i < n; i++ {
 		wg.Add(1)
@@ -16,8 +16,8 @@ func ConcurrentRun(n int,function func(no int)) {
 	wg.Wait()
 }
 
-func test(){
-	ConcurrentRun(5, func(n int)  {
+func test() {
+	ConcurrentRun(5, func(n int) {
 		println("test")
 	})
 }

@@ -1,6 +1,7 @@
 package eureka_client
 
 import (
+	"go.uber.org/atomic"
 	"go.uber.org/zap"
 	"log"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"unsafe"
 )
 
 // EurekaClient客户端
@@ -20,12 +22,59 @@ type EurekaClient struct {
 	Config     *Config
 	// eureka服务中注册的应用
 	Applications *Applications
-	//TODO:增器
-	autoInc *AutoInc
+	//自增器
+	autoInc *atomic.Int64
 	//
 	cache map[string]interface{}
 	//日志对象
 	logger *ClientLogger
+}
+
+// NewClient 创建客户端
+func NewClient(config *Config) *EurekaClient {
+	defaultConfig(config)
+	config.instance = NewInstance(getLocalIP(), config)
+
+	client := &EurekaClient{Config: config}
+	client.logger = nil
+	client.autoInc = atomic.NewInt64(1)
+
+	return client
+}
+
+// NewClient 创建客户端
+func NewClientWithLog(config *Config, zapLog *zap.Logger) *EurekaClient {
+	defaultConfig(config)
+	config.instance = NewInstance(getLocalIP(), config)
+
+	client := &EurekaClient{Config: config}
+	client.logger = NewLogAgent(zapLog)
+	client.autoInc = atomic.NewInt64(1)
+
+	return client
+}
+
+func defaultConfig(config *Config) {
+	if config.DefaultZone == "" {
+		config.DefaultZone = "http://localhost:8761/eureka/"
+	}
+	if config.RenewalIntervalInSecs == 0 {
+		config.RenewalIntervalInSecs = 30
+	}
+	if config.RegistryFetchIntervalSeconds == 0 {
+		config.RegistryFetchIntervalSeconds = 15
+	}
+	if config.DurationInSecs == 0 {
+		config.DurationInSecs = 90
+	}
+	if config.App == "" {
+		config.App = "server"
+	} else {
+		config.App = strings.ToLower(config.App)
+	}
+	if config.Port == 0 {
+		config.Port = 80
+	}
 }
 
 // Start 启动时注册客户端，并后台刷新服务列表，以及心跳
@@ -33,9 +82,6 @@ func (client *EurekaClient) Start() {
 	client.mutex.Lock()
 	client.Running = true
 	client.mutex.Unlock()
-
-	//TODO: 设值自增器
-	client.autoInc = NewAutoInc(0, 1)
 
 	// 注册
 	if err := client.doRegister(); err != nil {
@@ -127,13 +173,13 @@ func (client *EurekaClient) handleSignal() {
 	for {
 		switch <-client.signalChan {
 		case syscall.SIGINT:
-			println("Receive exit signal, client instance going to de-egister")
+			println("Receive exit signal, client instance going to de-register")
 			fallthrough
 		case syscall.SIGKILL:
-			println("Receive exit signal, client instance going to de-egister")
+			println("Receive exit signal, client instance going to de-register")
 			fallthrough
 		case syscall.SIGTERM:
-			log.Println("Receive exit signal, client instance going to de-egister")
+			log.Println("Receive exit signal, client instance going to de-register")
 			err := client.doUnRegister()
 			if err != nil {
 				log.Println(err.Error())
@@ -142,51 +188,6 @@ func (client *EurekaClient) handleSignal() {
 			}
 			os.Exit(0)
 		}
-	}
-}
-
-// NewClient 创建客户端
-func NewClient(config *Config) *EurekaClient {
-	defaultConfig(config)
-	config.instance = NewInstance(getLocalIP(), config)
-
-	client := &EurekaClient{Config: config}
-	client.logger = nil
-
-	return client
-}
-
-// NewClient 创建客户端
-func NewClientWithLog(config *Config, zapLog * zap.Logger) *EurekaClient {
-	defaultConfig(config)
-	config.instance = NewInstance(getLocalIP(), config)
-
-	client := &EurekaClient{Config: config}
-	client.logger = NewLogAgent(zapLog)
-
-	return client
-}
-
-func defaultConfig(config *Config) {
-	if config.DefaultZone == "" {
-		config.DefaultZone = "http://localhost:8761/eureka/"
-	}
-	if config.RenewalIntervalInSecs == 0 {
-		config.RenewalIntervalInSecs = 30
-	}
-	if config.RegistryFetchIntervalSeconds == 0 {
-		config.RegistryFetchIntervalSeconds = 15
-	}
-	if config.DurationInSecs == 0 {
-		config.DurationInSecs = 90
-	}
-	if config.App == "" {
-		config.App = "server"
-	} else {
-		config.App = strings.ToLower(config.App)
-	}
-	if config.Port == 0 {
-		config.Port = 80
 	}
 }
 
@@ -208,10 +209,12 @@ func (client *EurekaClient) GetNextServerFromEureka(appName string) Instance {
 		client.cache = appMap
 	}
 
-	appList := client.cache[appName].(map[int]interface{})
-	var incrementAndGet = client.autoInc.IncrementAndGet()
-	var index = incrementAndGet % len(appList)
-	return appList[index].(Instance)
+	appMap := client.cache[appName].(map[int]interface{})
+
+	//自增器
+	var index = client.autoInc.Inc() % int64(len(appMap))
+	intNum := *(*int)(unsafe.Pointer(&index))
+	return appMap[intNum].(Instance)
 }
 
 //TODO: 优化 比如https

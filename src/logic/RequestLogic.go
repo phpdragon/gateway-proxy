@@ -1,7 +1,7 @@
 package logic
 
 import (
-   log "../core/log"
+	log "../core/log"
 	"../models"
 	"../utils"
 	"go.uber.org/zap"

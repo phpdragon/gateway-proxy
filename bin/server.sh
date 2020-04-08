@@ -139,7 +139,7 @@ stop() {
   fi
 
   echo -e "${KILL_TIP}"
-  kill -9 "${app_pid}"
+  kill "${app_pid}"
 
   sleep 3
 

@@ -2,13 +2,12 @@ package main
 
 import (
 	"./consts"
-	ctl "./controllers"
 	"./core"
 	logger "./core/log"
-	eureka "./eureka-client"
 	"./logic"
 	"./utils"
 	"fmt"
+	eureka "gitee.com/go-eurake-client"
 	"github.com/astaxie/beego/orm"
 	"io/ioutil"
 	"log"
@@ -21,8 +20,8 @@ import (
 )
 
 var (
-	//根目录为执行可执行文件命令的所在目录： favicon.ico => $(pwd)/favicon.ico
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
+	gEurekaClient  *eureka.EurekaClient
 )
 
 //初始化方法
@@ -55,25 +54,25 @@ func iniLog() {
  *
  */
 func initSignalHandle() {
-	go func() {
-		for {
-			ch := make(chan os.Signal)
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 
-			signal.Notify(ch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
-			sig := <-ch
+	go func() {
+		for sig := range ch {
 			fmt.Println("Signal received:", sig, " \n")
 			switch sig {
 			case syscall.SIGHUP:
-				println("Receive exit signal, client instance going to de-egister")
+				println("Receive exit signal, client instance going to de-register")
 				fallthrough
 			case syscall.SIGINT:
-				println("Receive exit signal, client instance going to de-egister")
+				println("Receive exit signal, client instance going to de-register")
 				fallthrough
 			case syscall.SIGKILL:
-				println("Receive exit signal, client instance going to de-egister")
+				println("Receive exit signal, client instance going to de-register")
 				fallthrough
 			case syscall.SIGTERM:
-				log.Println("Receive exit signal, client instance going to de-egister")
+				log.Println("Receive exit signal, client instance going to de-register")
+				shutdown()
 				os.Exit(0)
 			}
 		}
@@ -119,35 +118,22 @@ func main() {
 	var statusPageURL = "/actuator/info"
 	var healthCheckUrl = "/actuator/health"
 
+	//clientConfig, _ := eureka.LoadConfig("D:\\IdeaProjects\\golang\\gateway_proxy\\etc\\app.yaml", false)
+	clientConfig, _ := eureka.LoadConfig("etc/app.yaml", false)
+
 	// create eureka client
-	var eurekaClient = eureka.NewClientWithLog(&eureka.Config{
-		DefaultZone:           "http://172.16.1.155:8761/eureka/",
-		App:                   appConfig.AppName,
-		Port:                  10000,
-		RenewalIntervalInSecs: 10,
-		DurationInSecs:        30,
-		Metadata: map[string]interface{}{
-			"VERSION":              "0.1.0",
-			"NODE_GROUP_ID":        0,
-			"PRODUCT_CODE":         "DEFAULT",
-			"PRODUCT_VERSION_CODE": "DEFAULT",
-			"PRODUCT_ENV_CODE":     "DEFAULT",
-			"SERVICE_VERSION_CODE": "DEFAULT",
-		},
-		StatusPageURL:  statusPageURL,
-		HealthCheckUrl: healthCheckUrl,
-	},logger.GetLogger()) // start eurekaClient, register、heartbeat、refresh
-	eurekaClient.Start()
+	gEurekaClient = eureka.NewClientWithLog(clientConfig, logger.GetLogger())
+	gEurekaClient.Run()
 
 	//监听日志级别设置
 	http.HandleFunc("/handle/level", logger.GetAtomicLevel().ServeHTTP)
 
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, ctl.ActuatorStatus(appConfig.Server.Port, appConfig.AppName), true)
+		writeJsonResponse(writer, request, eureka.ActuatorStatus(appConfig.Server.Port, appConfig.AppName), true)
 	})
 	http.HandleFunc(healthCheckUrl, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, ctl.ActuatorHealth(), true)
+		writeJsonResponse(writer, request, eureka.ActuatorHealth(), true)
 	})
 	http.HandleFunc("/favicon.ico", func(writer http.ResponseWriter, request *http.Request) {
 		_, err := writer.Write(gFaviconIco)
@@ -158,7 +144,7 @@ func main() {
 		}
 	})
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		indexHandler(writer, request, eurekaClient)
+		indexHandler(writer, request, gEurekaClient)
 	})
 
 	log.Printf("Listening on port %d", appConfig.Server.Port)
@@ -167,6 +153,12 @@ func main() {
 	// start http server
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", appConfig.Server.Port), nil); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func shutdown() {
+	if nil != gEurekaClient {
+		gEurekaClient.Shutdown()
 	}
 }
 
