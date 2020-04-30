@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
 
 #. /etc/init.d/functions
+source /etc/profile
 
 CURRENT_DATETIME=$(date "+%Y-%m-%d %H:%M:%S")
 CURRENT_DIR=$(pwd)
-#
-#当前脚本目录
+#app脚本目录
 APP_BIN_DIR="$(cd "$(dirname "$0")" && pwd)"
 #app根目录
 APP_ROOT_DIR=$(cd "${APP_BIN_DIR}/../" && pwd)
 #
 #应用名称
 APP_NAME=$(basename "$APP_ROOT_DIR")
-APP_BIN_FILE="${APP_BIN_DIR}/${APP_NAME}"
-APP_CONF_FILE="${APP_ROOT_DIR}/etc/app.yaml"
+
+##########################调整这里就行###############################
+
+#应用文件名称,必要变量
+APP_FILE="${APP_BIN_DIR}/${APP_NAME}"
+
+#应用可执行命令,必要变量
+APP_BIN_FILE_PATH="${APP_BIN_DIR}/${APP_NAME}"
+
+################################################################
+
 #
 NOHUT_LOG_FILE="${APP_ROOT_DIR}/log/nohup.log"
-NOHUP_APP_BIN_FILE=$(whereis nohup | awk '{print $2}')
+NOHUP_BIN=$(whereis nohup | awk '{print $2}')
 #
-APP_START_CMD="${NOHUP_APP_BIN_FILE} ${APP_BIN_FILE} -c ${APP_CONF_FILE} > ${NOHUT_LOG_FILE} 2>&1 &"
-CHECK_PID_CMD="ps aux | grep '${APP_BIN_FILE}' | grep -v grep | awk '{print \$2}'"
+APP_STARTUP_CMD="${NOHUP_BIN} ${APP_BIN_FILE_PATH} >> ${NOHUT_LOG_FILE} 2>&1 &"
+CHECK_PID_CMD="ps -fu${USER} | grep '${APP_FILE}' | grep -v grep | awk '{print \$2}'"
 #
 #提示文案
 APP_NAME_COM="\033[31m${APP_NAME}\033[0m"
@@ -28,14 +37,17 @@ WARN_TIP_PREFIX="\033[33mWARN\033[0m:"
 ERROR_TIP_PREFIX="\033[31mERROR\033[0m:"
 #
 NOHUP_NOT_INSTALLED="${WARN_TIP_PREFIX} nohup has not been installed and is now installed..."
-APP_BIN_NOT_EXIST="${ERROR_TIP_PREFIX} The executable file:[${APP_BIN_FILE}] that currently applies ${APP_NAME_COM} does not exist!"
+APP_EXEC_CMD_NOT_EXIST="${ERROR_TIP_PREFIX} The executable file:[${APP_FILE}] that currently applies ${APP_NAME_COM} does not exist!"
 #
+WARIT_RUNNING_TIP="${INFO_TIP_PREFIX} waiting for the app ${APP_NAME_COM} startup"
 RUNNING_TIP_COM="the app ${APP_NAME_COM} is \033[32mrunning\033[0m "
 RUNNING_TIP="${INFO_TIP_PREFIX} ${RUNNING_TIP_COM}"
-START_AGAIN_TIP="${WARN_TIP_PREFIX} ${RUNNING_TIP}, please don't try again!"
+START_AGAIN_TIP="${WARN_TIP_PREFIX} ${RUNNING_TIP_COM}, please don't try again!"
 #
+WARIT_STOP_TIP="${INFO_TIP_PREFIX} waiting for the app ${APP_NAME_COM} stop"
 STOPED_TIP_COM="the app ${APP_NAME_COM} is not running"
 STOPED_TIP="${INFO_TIP_PREFIX} ${STOPED_TIP_COM}!"
+IS_STOPED_TIP="the app ${APP_NAME_COM} is stoped!"
 STOPED_AGAIN_TIP="${WARN_TIP_PREFIX} ${STOPED_TIP_COM}, please don't try again!"
 #
 KILL_TIP="${INFO_TIP_PREFIX} exec kill ${APP_NAME_COM} process!"
@@ -43,38 +55,46 @@ KILL_TIP="${INFO_TIP_PREFIX} exec kill ${APP_NAME_COM} process!"
 # 进入app根目录下,解决程序中一些资源路径问题
 cd "${APP_ROOT_DIR}" || exit 1
 
-start() {
+function start() {
   check_nohup
+
   check_bin_exist
 
   app_pid=$(eval "${CHECK_PID_CMD}")
   if [ ""x != "${app_pid}"x ]; then
-    echo -e "${START_AGAIN_TIP}"
+    echo -e "${START_AGAIN_TIP} pid:\033[32m${app_pid}\033[0m"
     return_curr_dir
     exit 0
   fi
 
   echo -e "${INFO_TIP_PREFIX} exec start ${APP_NAME_COM} @${CURRENT_DATETIME}"
-  echo -e "${INFO_TIP_PREFIX} ${APP_START_CMD}"
-  eval "${APP_START_CMD}"
+  echo -e "${INFO_TIP_PREFIX} ${APP_STARTUP_CMD}"
+  eval "${APP_STARTUP_CMD}"
 
-  sleep 3
+  printf "${WARIT_RUNNING_TIP}"
+  app_pid=$(eval "${CHECK_PID_CMD}")
+  while [[ -z "${app_pid}" ]]
+  do
+      printf "."
+      sleep 1
+  done
 
-  check_app_status
+  echo ""
+  echo -e "${RUNNING_TIP}, pid:\033[32m${app_pid}\033[0m !"
 }
 
-#检查可执行文件是否存在，命令必须部署目录和bin文件同名
-check_bin_exist() {
-  if [ ! -f "${APP_BIN_FILE}" ]; then
-    echo -e "${APP_BIN_NOT_EXIST}"
+#检查可执行文件是否存在，应用部署目录必须和bin文件同名
+function check_bin_exist() {
+  if [ ! -f "${APP_FILE}" ]; then
+    echo -e "${APP_EXEC_CMD_NOT_EXIST}"
     return_curr_dir
     exit 1
   fi
 }
 
 #检查nohup是否安装nohup
-check_nohup() {
-  if [ -f "${NOHUP_APP_BIN_FILE}" ]; then
+function check_nohup() {
+  if [ -f "${NOHUP_BIN}" ]; then
     return 0
   fi
 
@@ -101,14 +121,14 @@ check_nohup() {
   fi
 }
 
-is_mac_os() {
+function is_mac_os() {
   if (uname -a | grep -q "Darwin"); then
     return 0
   fi
   return 1
 }
 
-is_ubuntu_os() {
+function is_ubuntu_os() {
   if [ -f "/etc/issue" ]; then
     # shellcheck disable=SC2002
     if (cat "/etc/issue" | grep -q "CentOS"); then
@@ -119,7 +139,7 @@ is_ubuntu_os() {
   return 1
 }
 
-is_centos() {
+function is_centos() {
   if [ -f "/etc/redhat-release" ]; then
     # shellcheck disable=SC2002
     if (cat "/etc/redhat-release" | grep -q "CentOS"); then
@@ -130,7 +150,7 @@ is_centos() {
   return 1
 }
 
-stop() {
+function stop() {
   app_pid=$(eval "${CHECK_PID_CMD}")
   if [ ""x == "${app_pid}"x ]; then
     echo -e "${STOPED_AGAIN_TIP}"
@@ -139,32 +159,42 @@ stop() {
   fi
 
   echo -e "${KILL_TIP}"
-  kill "${app_pid}"
+  kill_cmd="kill ${app_pid}"
+  echo -e "${INFO_TIP_PREFIX} ${kill_cmd}"
+  eval ${kill_cmd}
 
-  sleep 3
+  printf "${WARIT_STOP_TIP}"
+  while [[ -n "${app_pid}" ]]
+  do
+      printf "."
+      sleep 1
+      app_pid=$(eval "${CHECK_PID_CMD}")
+  done
 
-  check_app_status
+  echo ""
+  echo -e "${IS_STOPED_TIP}"
 }
 
-check_app_status() {
+function check_app_status() {
   app_pid=$(eval "${CHECK_PID_CMD}")
   if [ ""x != "${app_pid}"x ]; then
-    echo -e "${RUNNING_TIP}, pid:${app_pid} !"
+    echo -e "${RUNNING_TIP}, pid:\033[32m${app_pid}\033[0m !"
   else
     echo -e "${STOPED_TIP}"
   fi
 }
 
-return_curr_dir() {
+function return_curr_dir() {
   cd "${CURRENT_DIR}" || exit 1
 }
 
-restart() {
+function restart() {
   app_pid=$(eval "${CHECK_PID_CMD}")
   if [ ""x != "${app_pid}"x ]; then
     stop
   fi
 
+  echo ""
   start
 }
 
