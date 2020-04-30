@@ -63,6 +63,22 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 ```
 
 2.启动服务
+> 部署目录
+```shell script
+gateway_proxy/
+├── bin
+│   ├── gateway_proxy
+│   └── server.sh
+├── etc
+│   └── app.yaml
+├── favicon.ico
+├── LICENSE
+├── log
+├── README.en.md
+└── README.md
+```
+
+>执行脚本
 ```shell script
 [root@localhost gateway_proxy]# dos2unix bin/*.sh
 
