@@ -49,13 +49,14 @@ clean:
 	@echo "Cleaning build cache"
 	@$(GO_CMD) clean
 	@-rm -f $(APP_BIN_DIR)/$(PROJECT_NAME)
+	@-rm -f $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz
 	@echo "Clean build cache over!"
 	@echo
 
 ## package: Package the app
 package: build
 	@echo "Taring project package..."
-	@-tar -czvf $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz -C $(CURRENT_DIR) bin etc log favicon.ico LICENSE README*.md
+	@-tar -czvf $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz -C $(CURRENT_DIR) bin etc log favicon.ico LICENSE README*.md --exclude=*.log
 	@echo "Taring project package over!"
 	@echo
 
