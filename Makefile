@@ -49,7 +49,7 @@ clean:
 	@echo "Cleaning build cache"
 	@$(GO_CMD) clean
 	@-rm -f $(APP_BIN_DIR)/$(PROJECT_NAME)
-    @-rm -f $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz
+	@-rm -f $(CURRENT_DIR)/$(PROJECT_NAME).tar.gz
 	@echo "Clean build cache over!"
 	@echo
 
