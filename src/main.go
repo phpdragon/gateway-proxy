@@ -7,8 +7,8 @@ import (
 	"./logic"
 	"./utils"
 	"fmt"
-	eureka "github.com/phpdragon/go-eurake-client"
 	"github.com/astaxie/beego/orm"
+	eureka "github.com/phpdragon/go-eurake-client"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,7 +21,7 @@ import (
 
 var (
 	gFaviconIco, _ = ioutil.ReadFile("favicon.ico")
-	gEurekaClient  *eureka.EurekaClient
+	gEurekaClient  *eureka.Client
 )
 
 //初始化方法
@@ -118,11 +118,9 @@ func main() {
 	var statusPageURL = "/actuator/info"
 	var healthCheckUrl = "/actuator/health"
 
-	//clientConfig, _ := eureka.LoadConfig("D:\\IdeaProjects\\golang\\gateway_proxy\\etc\\app.yaml", false)
-	clientConfig, _ := eureka.LoadConfig("etc/app.yaml", false)
-
 	// create eureka client
-	gEurekaClient = eureka.NewClientWithLog(clientConfig, logger.GetLogger())
+	//gEurekaClient = eureka.NewClientWithLog("D:\\IdeaProjects\\golang\\gateway_proxy\\etc\\app.yaml", logger.GetLogger())
+	gEurekaClient = eureka.NewClientWithLog("etc/app.yaml", logger.GetLogger())
 	gEurekaClient.Run()
 
 	//监听日志级别设置
@@ -130,10 +128,10 @@ func main() {
 
 	// http server
 	http.HandleFunc(statusPageURL, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, eureka.ActuatorStatus(appConfig.Server.Port, appConfig.AppName), true)
+		writeJsonResponse(writer, request, gEurekaClient.ActuatorStatus(), true)
 	})
 	http.HandleFunc(healthCheckUrl, func(writer http.ResponseWriter, request *http.Request) {
-		writeJsonResponse(writer, request, eureka.ActuatorHealth(), true)
+		writeJsonResponse(writer, request, gEurekaClient.ActuatorHealth(), true)
 	})
 	http.HandleFunc("/favicon.ico", func(writer http.ResponseWriter, request *http.Request) {
 		_, err := writer.Write(gFaviconIco)
@@ -162,7 +160,7 @@ func shutdown() {
 	}
 }
 
-func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.EurekaClient) {
+func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.Client) {
 	startTime := utils.GetCurrentTimeMillis()
 	logger.Info("")
 

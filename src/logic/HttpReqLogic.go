@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func HandleHttpRequest(req *http.Request, eurekaClient *eureka.EurekaClient) (interface{}, error) {
+func HandleHttpRequest(req *http.Request, eurekaClient *eureka.Client) (interface{}, error) {
 	body, _ := ioutil.ReadAll(req.Body)
 	_ = req.Body.Close()
 
