@@ -8,13 +8,13 @@ import (
 	"../utils"
 	"encoding/json"
 	"errors"
-	eureka "gitee.com/go-eurake-client"
+	eureka "github.com/phpdragon/go-eurake-client"
 	"io/ioutil"
 	"net/http"
 	"strings"
 )
 
-func HandleHttpRequest(req *http.Request, eurekaClient *eureka.EurekaClient) (interface{}, error) {
+func HandleHttpRequest(req *http.Request, eurekaClient *eureka.Client) (interface{}, error) {
 	body, _ := ioutil.ReadAll(req.Body)
 	_ = req.Body.Close()
 

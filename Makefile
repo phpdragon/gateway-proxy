@@ -23,6 +23,7 @@ MAKEFLAGS += --silent
 ## deps: Install missing dependencies.
 deps:
 	@echo "Checking if there is any missing dependencies..."
+	$(GO_CMD) get github.com/phpdragon/go-eurake-client
 	$(GO_CMD) get github.com/astaxie/beego/orm
 	$(GO_CMD) get github.com/go-redis/redis
 	$(GO_CMD) get github.com/go-sql-driver/mysql
