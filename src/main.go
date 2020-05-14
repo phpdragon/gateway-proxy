@@ -7,7 +7,7 @@ import (
 	"./logic"
 	"./utils"
 	"fmt"
-	eureka "gitee.com/go-eurake-client"
+	eureka "github.com/phpdragon/go-eurake-client"
 	"github.com/astaxie/beego/orm"
 	"io/ioutil"
 	"log"
