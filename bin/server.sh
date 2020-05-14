@@ -13,15 +13,22 @@ APP_ROOT_DIR=$(cd "${APP_BIN_DIR}/../" && pwd)
 #应用名称
 APP_NAME=$(basename "$APP_ROOT_DIR")
 
-#应用可执行文件路径
+##########################调整这里就行###############################
+
+#应用文件名称,必要变量
+APP_FILE="${APP_BIN_DIR}/${APP_NAME}"
+
+#应用可执行命令,必要变量
 APP_BIN_FILE_PATH="${APP_BIN_DIR}/${APP_NAME}"
+
+################################################################
 
 #
 NOHUT_LOG_FILE="${APP_ROOT_DIR}/log/nohup.log"
 NOHUP_BIN=$(whereis nohup | awk '{print $2}')
 #
 APP_STARTUP_CMD="${NOHUP_BIN} ${APP_BIN_FILE_PATH} >> ${NOHUT_LOG_FILE} 2>&1 &"
-CHECK_PID_CMD="ps -fu${USER} | grep '${APP_BIN_FILE_PATH}' | grep -v grep | awk '{print \$2}'"
+CHECK_PID_CMD="ps -fu${USER} | grep '${APP_FILE}' | grep -v grep | awk '{print \$2}'"
 #
 #提示文案
 APP_NAME_COM="\033[31m${APP_NAME}\033[0m"
@@ -30,7 +37,7 @@ WARN_TIP_PREFIX="\033[33mWARN\033[0m:"
 ERROR_TIP_PREFIX="\033[31mERROR\033[0m:"
 #
 NOHUP_NOT_INSTALLED="${WARN_TIP_PREFIX} nohup has not been installed and is now installed..."
-APP_EXEC_CMD_NOT_EXIST="${ERROR_TIP_PREFIX} The executable file:[${APP_BIN_FILE_PATH}] that currently applies ${APP_NAME_COM} does not exist!"
+APP_EXEC_CMD_NOT_EXIST="${ERROR_TIP_PREFIX} The executable file:[${APP_FILE}] that currently applies ${APP_NAME_COM} does not exist!"
 #
 WARIT_RUNNING_TIP="${INFO_TIP_PREFIX} waiting for the app ${APP_NAME_COM} startup"
 RUNNING_TIP_COM="the app ${APP_NAME_COM} is \033[32mrunning\033[0m "
@@ -39,6 +46,7 @@ START_AGAIN_TIP="${WARN_TIP_PREFIX} ${RUNNING_TIP_COM}, please don't try again!"
 #
 WARIT_STOP_TIP="${INFO_TIP_PREFIX} waiting for the app ${APP_NAME_COM} stop"
 STOPED_TIP_COM="the app ${APP_NAME_COM} is not running"
+STOPED_TIP="${INFO_TIP_PREFIX} ${STOPED_TIP_COM}!"
 IS_STOPED_TIP="the app ${APP_NAME_COM} is stoped!"
 STOPED_AGAIN_TIP="${WARN_TIP_PREFIX} ${STOPED_TIP_COM}, please don't try again!"
 #
@@ -77,7 +85,7 @@ function start() {
 
 #检查可执行文件是否存在，应用部署目录必须和bin文件同名
 function check_bin_exist() {
-  if [ ! -f "${APP_BIN_FILE_PATH}" ]; then
+  if [ ! -f "${APP_FILE}" ]; then
     echo -e "${APP_EXEC_CMD_NOT_EXIST}"
     return_curr_dir
     exit 1
@@ -186,6 +194,7 @@ function restart() {
     stop
   fi
 
+  echo ""
   start
 }
 
