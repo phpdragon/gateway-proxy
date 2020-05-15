@@ -94,7 +94,7 @@ INFO: the app gateway_proxy is running , pid:727 !
 
 #### 压力测试
 1. echo '{"a":"b"}' > data.json
-2. ab -c 10 -t 60 -T 'application/json' -p data.json http://192.16.1.2:8080/cfg/testCtl/demoAction
+2. ab -c 10 -t 60 -T 'application/json' -p data.json http://127.0.0.1:8080/cfg/testCtl/demoAction
 
 ------------------------------------
 
