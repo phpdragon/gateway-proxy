@@ -8,7 +8,7 @@ import (
 	"./utils"
 	"fmt"
 	"github.com/astaxie/beego/orm"
-	eureka "github.com/phpdragon/go-eurake-client"
+	eureka "github.com/phpdragon/go-eureka-client"
 	"io/ioutil"
 	"log"
 	"net/http"

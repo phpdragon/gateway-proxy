@@ -8,7 +8,7 @@ import (
 	"../utils"
 	"encoding/json"
 	"errors"
-	eureka "github.com/phpdragon/go-eurake-client"
+	eureka "github.com/phpdragon/go-eureka-client"
 	"io/ioutil"
 	"net/http"
 	"strings"
