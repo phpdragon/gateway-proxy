@@ -49,7 +49,7 @@ func HandleHttpRequest(req *http.Request, eurekaClient *eureka.Client) (interfac
 	}
 
 	//调用远程服务
-	remoteData, err := callRemoteService(httpUrl, body)
+	remoteData, err := callRemoteService(httpUrl, body, int64(route.Timeout))
 	if nil != err {
 		return nil, err
 	}
@@ -62,8 +62,8 @@ func HandleHttpRequest(req *http.Request, eurekaClient *eureka.Client) (interfac
 	return response, nil
 }
 
-func callRemoteService(httpUrl string, req []byte) (interface{}, error) {
-	return utils.HttpPostByte(httpUrl, req)
+func callRemoteService(httpUrl string, req []byte, timeout int64) (interface{}, error) {
+	return utils.HttpPostByte(httpUrl, req, timeout)
 }
 
 func getPostParams(rw http.ResponseWriter, req *http.Request) (core.ApiRequest, error) {
