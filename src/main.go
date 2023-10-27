@@ -1,13 +1,13 @@
 package main
 
 import (
-	"./consts"
-	"./core"
-	logger "./core/log"
-	"./logic"
-	"./utils"
 	"fmt"
 	"github.com/astaxie/beego/orm"
+	"github.com/phpdragon/gateway_proxy/src/consts"
+	"github.com/phpdragon/gateway_proxy/src/core"
+	logger "github.com/phpdragon/gateway_proxy/src/core/log"
+	"github.com/phpdragon/gateway_proxy/src/logic"
+	"github.com/phpdragon/gateway_proxy/src/utils"
 	eureka "github.com/phpdragon/go-eureka-client"
 	"io/ioutil"
 	"log"
@@ -24,7 +24,7 @@ var (
 	gEurekaClient  *eureka.Client
 )
 
-//初始化方法
+// 初始化方法
 func init() {
 	initSignalHandle()
 	initDB()
@@ -111,7 +111,7 @@ func writeJsonResponse(rw http.ResponseWriter, req *http.Request, response inter
 	}
 }
 
-//程序入口
+// 程序入口
 func main() {
 	appConfig := core.GetAppConfig()
 
@@ -177,7 +177,7 @@ func indexHandler(rw http.ResponseWriter, req *http.Request, client *eureka.Clie
 	printExecTime(startTime, endTime)
 }
 
-//打印方法执行耗时的信息
+// 打印方法执行耗时的信息
 func printExecTime(startTime int64, endTime int64) {
 	diffTime := endTime - startTime
 	diffTimeStr := strings.Replace("请求处理结束,耗时: time ms \n\n=========================================>>>", "time", strconv.FormatInt(diffTime, 10), -1)
