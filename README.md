@@ -7,6 +7,7 @@
 
 #### 软件架构
 ##### 1.软件架构说明
+
 ##### 2.代码结构目录
 ```text
 gateway-proxy/
@@ -28,6 +29,7 @@ gateway-proxy/
 └── scripts  #项目脚本
     └── server.sh
 ```
+参考： [Go 项目标准布局](https://zhuanlan.zhihu.com/p/662397116)、[Go 项目目录结构](https://blog.csdn.net/wohu1104/article/details/123209272)、[go项目标准化工程结构解析](https://blog.csdn.net/keenw/article/details/126352773)
 
 ------------------------------------
 
@@ -35,7 +37,7 @@ gateway-proxy/
 
 1.  DB
 
-```sql
+```mysql
 CREATE DATABASE db_gateway_proxy;
 
 CREATE TABLE db_gateway_proxy.`t_route` (
