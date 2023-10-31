@@ -1,12 +1,13 @@
-package logic
+package request
 
 import (
 	"encoding/json"
 	"errors"
 	"github.com/phpdragon/gateway-proxy/internal/base"
-	"github.com/phpdragon/gateway-proxy/internal/components/logger"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
+	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
+	"github.com/phpdragon/gateway-proxy/internal/logic/redis"
 	"github.com/phpdragon/gateway-proxy/internal/models"
 	httpUtil "github.com/phpdragon/gateway-proxy/internal/utils/http"
 	"io"
@@ -24,7 +25,7 @@ func HandleHttpRequest(req *http.Request) (interface{}, error) {
 
 	routeMap, err := models.QueryAllActiveRoutes()
 	if nil != err {
-		logger.Info(err.Error())
+		config.Logger().Error(err.Error())
 		return nil, err
 	}
 	if nil == routeMap {
@@ -33,12 +34,12 @@ func HandleHttpRequest(req *http.Request) (interface{}, error) {
 
 	route, ok := routeMap[req.URL.Path]
 	if !ok {
-		logger.Info(err.Error())
+		config.Logger().Error(err.Error())
 		return nil, errors.New("请开发人员配置转发设置")
 	}
 
 	//请求频率检测
-	if !CheckAccessRateLimit(route) {
+	if !limit.CheckAccessRateLimit(route) {
 		return nil, errors.New("请求过于频繁，请稍后再试")
 	}
 
@@ -56,7 +57,7 @@ func HandleHttpRequest(req *http.Request) (interface{}, error) {
 	}
 
 	//访问数量增加一次
-	AccessTotalIncr(route.Id)
+	redis.AccessTotalIncr(route.Id)
 
 	response := base.BuildOK()
 	response.Data = remoteData
@@ -70,12 +71,12 @@ func callRemoteService(httpUrl string, req []byte, timeout int64) (interface{}, 
 func getPostParams(rw http.ResponseWriter, req *http.Request) (base.ApiRequest, error) {
 	body, err := io.ReadAll(req.Body)
 	if nil != err {
-		logger.Info(err.Error())
+		config.Logger().Error(err.Error())
 		return base.ApiRequest{}, err
 	}
 	err = req.Body.Close()
 	if nil != err {
-		logger.Info(err.Error())
+		config.Logger().Error(err.Error())
 		return base.ApiRequest{}, err
 	}
 
@@ -87,7 +88,7 @@ func getPostParams(rw http.ResponseWriter, req *http.Request) (base.ApiRequest, 
 		err := json.Unmarshal(body, &requestData)
 		//解析失败会报错，如json字符串格式不对，缺"号，缺}等。
 		if err != nil {
-			logger.Info(err.Error())
+			config.Logger().Error(err.Error())
 			return requestData, nil
 		}
 	} else if strings.Contains(contentType, medietype.ApplicationXWwwFormUrlencoded) {

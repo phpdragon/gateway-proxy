@@ -8,8 +8,8 @@ import (
 // 初始化
 var redisClient *redis.Client
 
-func init() {
-	redisConfig := GetRedisConfig()
+func NewRedis() {
+	redisConfig := &appConfig.Redis
 	poolSize := redisConfig.PoolSize
 	if poolSize <= 0 {
 		poolSize = runtime.NumCPU()

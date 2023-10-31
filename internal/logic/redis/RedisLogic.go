@@ -1,7 +1,6 @@
-package logic
+package redis
 
 import (
-	"github.com/phpdragon/gateway-proxy/internal/components/logger"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
 	"strconv"
@@ -52,6 +51,6 @@ func AccessTotalIncrBy(routeId int, total int) {
 	val := strconv.FormatInt(date.GetCurrentTimeMillis(), 10) + "|" + strconv.Itoa(total)
 	err := config.Redis().Set(key, val, 180*time.Second).Err()
 	if nil != err {
-		logger.Error(err.Error())
+		config.Logger().Error(err.Error())
 	}
 }

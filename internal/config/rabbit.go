@@ -1,16 +1,15 @@
 package config
 
 import (
-	"github.com/phpdragon/gateway-proxy/internal/components/logger"
 	"github.com/phpdragon/gateway-proxy/internal/components/rabbit"
 )
 
 var rabbitClient *rabbit.MqClient
 
-func init() {
-	config := GetRabbitConfig()
+func NewRabbit() {
+	config := &appConfig.Rabbit
 	if config != nil {
-		logger.Warn("Rabbit config missing.")
+		Logger().Warn("Rabbit config missing.")
 		return
 	}
 

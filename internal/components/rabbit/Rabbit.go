@@ -12,7 +12,7 @@ package rabbit
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"io"
 	"log"
 	"net/http"

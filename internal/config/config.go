@@ -3,9 +3,7 @@ package config
 import (
 	"bytes"
 	"errors"
-	"flag"
 	"fmt"
-	"github.com/phpdragon/gateway-proxy/internal/utils/date"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -69,23 +67,17 @@ type Log struct {
 	Path string
 }
 
-var (
-	//https://studygolang.com/articles/4490
-	debugMode  = flag.Bool("d", false, "Debug mode: true or false")
-	configPath = flag.String("c", "configs/app.yaml", "Config path: like this ../configs/app.yaml or absolute path")
-	//cd
-	appConfig *AppConfig
-)
+var appConfig *AppConfig
 
-// 加载服务端配置
-func init() {
-	flag.Parse()
-	err := LoadConfig(*configPath, &appConfig, false)
+// InitConf 加载服务端配置
+func InitConf(configPath string, debugMode bool) {
+	appConfig = new(AppConfig)
+	err := LoadConfig(configPath, &appConfig, false)
 	if nil != err {
 		log.Fatal(err.Error())
 	}
 	//
-	appConfig.RunMode = *debugMode
+	appConfig.RunMode = debugMode
 }
 
 func GetAppConfig() *AppConfig {
@@ -100,28 +92,6 @@ func GetServerConfig() *ServerConfig {
 	}
 	appConfig.Server.Port = port
 	return &appConfig.Server
-}
-
-func GetDatabaseConfig() *DatabaseConfig {
-	return &appConfig.Database
-}
-
-func GetRedisConfig() *RedisConfig {
-	return &appConfig.Redis
-}
-
-func GetRabbitConfig() *RabbitConfig {
-	return &appConfig.Rabbit
-}
-
-func GetLogConfig() Log {
-	return appConfig.Log
-}
-
-// GetLogFilePath 获取日志文件路径
-func (*Log) GetLogFilePath() string {
-	path := strings.TrimRight(appConfig.Log.Path, "/")
-	return fmt.Sprintf("%s/%s_%s.log", path, appConfig.AppName, date.GetDatetimeYmd())
 }
 
 func LoadConfig(configPath string, configStruct interface{}, valid bool) error {
