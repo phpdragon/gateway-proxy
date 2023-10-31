@@ -1,4 +1,4 @@
-package core
+package base
 
 type ApiResponse struct {
 	Code interface{} `json:"code"`

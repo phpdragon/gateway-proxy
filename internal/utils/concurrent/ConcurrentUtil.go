@@ -1,9 +1,9 @@
-package utils
+package concurrent
 
 import "sync"
 
-// ConcurrentRun 并发执行
-func ConcurrentRun(n int, function func(no int)) {
+// Run 并发执行
+func Run(n int, function func(no int)) {
 	wg := new(sync.WaitGroup)
 	for i := 0; i < n; i++ {
 		wg.Add(1)
@@ -17,7 +17,7 @@ func ConcurrentRun(n int, function func(no int)) {
 }
 
 func test() {
-	ConcurrentRun(5, func(n int) {
+	Run(5, func(n int) {
 		println("test")
 	})
 }

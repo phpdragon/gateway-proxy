@@ -1,8 +1,7 @@
-package client
+package config
 
 import (
 	"github.com/go-redis/redis"
-	"github.com/phpdragon/gateway-proxy/internal/core"
 	"runtime"
 )
 
@@ -10,7 +9,7 @@ import (
 var redisClient *redis.Client
 
 func init() {
-	redisConfig := core.GetRedisConfig()
+	redisConfig := GetRedisConfig()
 	poolSize := redisConfig.PoolSize
 	if poolSize <= 0 {
 		poolSize = runtime.NumCPU()

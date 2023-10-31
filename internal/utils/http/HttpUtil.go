@@ -1,4 +1,4 @@
-package utils
+package http
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func HttpPostByte(url string, postData []byte, timeout int64) ([]byte, error) {
+func PostByte(url string, postData []byte, timeout int64) ([]byte, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -29,7 +29,7 @@ func HttpPostByte(url string, postData []byte, timeout int64) ([]byte, error) {
 	return io.ReadAll(response.Body)
 }
 
-func HttpPost(url string, postData string, timeout int64) (string, error) {
+func Post(url string, postData string, timeout int64) (string, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -51,7 +51,7 @@ func HttpPost(url string, postData string, timeout int64) (string, error) {
 	return string(body), err
 }
 
-func HttpGet(url string, timeout int64) (string, error) {
+func Get(url string, timeout int64) (string, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{

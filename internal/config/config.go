@@ -1,11 +1,11 @@
-package core
+package config
 
 import (
 	"bytes"
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/phpdragon/gateway-proxy/internal/utils"
+	"github.com/phpdragon/gateway-proxy/internal/utils/date"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -31,6 +31,7 @@ type AppConfig struct {
 	Server   ServerConfig
 	Database DatabaseConfig
 	Redis    RedisConfig
+	Rabbit   RabbitConfig
 	Log      Log
 	//RenamedC int   `yaml:"c"`
 	//D        []int `yaml:",flow"`
@@ -56,6 +57,12 @@ type RedisConfig struct {
 	Password string
 	Db       int
 	PoolSize int
+}
+
+type RabbitConfig struct {
+	Host     string
+	User     string
+	Password string
 }
 
 type Log struct {
@@ -85,22 +92,26 @@ func GetAppConfig() *AppConfig {
 	return appConfig
 }
 
-func GetServerConfig() ServerConfig {
+func GetServerConfig() *ServerConfig {
 	port := appConfig.Server.Port
 	if port <= 0 {
 		port = 80
 		log.Printf("Defaulting to port %d", port)
 	}
 	appConfig.Server.Port = port
-	return appConfig.Server
+	return &appConfig.Server
 }
 
-func GetDatabaseConfig() DatabaseConfig {
-	return appConfig.Database
+func GetDatabaseConfig() *DatabaseConfig {
+	return &appConfig.Database
 }
 
-func GetRedisConfig() RedisConfig {
-	return appConfig.Redis
+func GetRedisConfig() *RedisConfig {
+	return &appConfig.Redis
+}
+
+func GetRabbitConfig() *RabbitConfig {
+	return &appConfig.Rabbit
 }
 
 func GetLogConfig() Log {
@@ -110,7 +121,7 @@ func GetLogConfig() Log {
 // GetLogFilePath 获取日志文件路径
 func (*Log) GetLogFilePath() string {
 	path := strings.TrimRight(appConfig.Log.Path, "/")
-	return fmt.Sprintf("%s/%s_%s.log", path, appConfig.AppName, utils.GetDatetimeYmd())
+	return fmt.Sprintf("%s/%s_%s.log", path, appConfig.AppName, date.GetDatetimeYmd())
 }
 
 func LoadConfig(configPath string, configStruct interface{}, valid bool) error {

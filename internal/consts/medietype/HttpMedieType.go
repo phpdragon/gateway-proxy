@@ -1,4 +1,4 @@
-package consts
+package medietype
 
 const CacheControl = "cache-control"
 const ContentType = "content-type"

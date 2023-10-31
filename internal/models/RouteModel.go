@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/astaxie/beego/orm"
 	// import your used driver
-	_ "github.com/go-sql-driver/mysql"
+	//_ "github.com/go-sql-driver/mysql"
 )
 
 var routeMap *map[string]Route

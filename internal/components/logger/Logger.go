@@ -1,4 +1,4 @@
-package log
+package logger
 
 import (
 	"go.uber.org/zap"
@@ -7,10 +7,8 @@ import (
 	"os"
 )
 
-// error logger
 var errorLogger *zap.Logger
 
-// InitLog TODO: 代码组织形式要优化一下，使用init进行初始化
 func InitLog(filename string) {
 	fileWriter := zapCore.AddSync(&lumberjack.Logger{
 		Filename:   filename,
@@ -24,7 +22,7 @@ func InitLog(filename string) {
 	//encoder := zap.NewProductionEncoderConfig()
 	//encoder.EncodeTime = zapCore.ISO8601TimeEncoder
 
-	// High-priority output should also go to standard error, and low-priority
+	// High-priority output should also go to standard errorcode, and low-priority
 	// output should also go to standard out.
 	consoleDebugging := zapCore.Lock(os.Stdout)
 
