@@ -1,4 +1,4 @@
-# gateway_proxy
+# gateway-proxy
 
 #### 介绍
 转发代理
@@ -6,8 +6,28 @@
 ------------------------------------
 
 #### 软件架构
-软件架构说明
-
+##### 1.软件架构说明
+##### 2.代码结构目录
+```text
+gateway-proxy/
+├── cmd  #项目主要的应用程序
+│   └── gateway-proxy
+│       └── main.go  #程序入口
+├── configs  #项目配置文件目录
+│   └── app.yaml
+├── favicon.ico  #站点图标
+├── go.mod
+├── go.sum
+├── internal  #私有的应用程序代码库
+├── LICENSE
+├── logs
+│   └── nohup.log
+├── Makefile  #编译文件
+├── README.en.md
+├── README.md
+└── scripts  #项目脚本
+    └── server.sh
+```
 
 ------------------------------------
 
@@ -16,7 +36,9 @@
 1.  DB
 
 ```sql
-CREATE TABLE `t_route` (
+CREATE DATABASE db_gateway_proxy;
+
+CREATE TABLE db_gateway_proxy.`t_route` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `app_id` int(11) DEFAULT '0' COMMENT 'appId',
   `url_path` varchar(75) DEFAULT NULL COMMENT 'URI路径',
@@ -35,7 +57,24 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 ```
 
 
-2.  xxxx
+2.  项目初始化
+
+Linux：
+```shell script 
+yum install make
+make deps
+```
+
+Windows：
+```shell script
+# 设置七牛云代理
+go env -w GOPROXY=https://goproxy.cn,direct
+# 开启module功能
+go env -w GO111MODULE=on
+# 依赖安装
+go mod download
+```
+
 3.  xxxx
 
 
@@ -46,15 +85,15 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 
 1.编译打包
 ```shell script
-[root@localhost gateway_proxy]# yum install -y make
-[root@localhost gateway_proxy]# make help
+[root@localhost gateway-proxy]# yum install -y make
+[root@localhost gateway-proxy]# make help
 
- Choose a command run in gateway_proxy:
+ Choose a command run in gateway-proxy:
 
- ############################################
-  Go项目编译脚本
-  参考：https  //studygolang.com/articles/14919?fr=sidebar
- ############################################
+ ########################################################
+ # Go项目编译脚本
+ # 参考：https://studygolang.com/articles/14919?fr=sidebar
+ ########################################################
   deps          Install missing dependencies.
   build         Compile the binary.
   clean         Clean build files. Runs `go clean` internally.
@@ -64,29 +103,27 @@ VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAct
 
 2.启动服务
 > 部署目录
-```shell script
-gateway_proxy/
-├── bin
-│   ├── gateway_proxy
-│   └── server.sh
-├── etc
+```text
+gateway-proxy/
+├── configs
 │   └── app.yaml
 ├── favicon.ico
-├── LICENSE
-├── log
-├── README.en.md
-└── README.md
+├── gateway-proxy
+├── logs
+│   └── nohup.log
+└── scripts
+    └── server.sh
 ```
 
 >执行脚本
 ```shell script
-[root@localhost gateway_proxy]# dos2unix bin/*.sh
+[root@localhost gateway-proxy]# dos2unix scripts/*.sh
 
-[root@localhost gateway_proxy]# bin/server.sh
-USAGE:bin/server.sh {start|stop|restart|status}
+[root@localhost gateway-proxy]# ./scripts/server.sh
+USAGE:scripts/server.sh {start|stop|restart|status}
 
-[root@localhost gateway_proxy]# bin/server.sh status
-INFO: the app gateway_proxy is running , pid:727 !
+[root@localhost gateway-proxy]# ./scripts/server.sh status
+INFO: the app gateway-proxy is running , pid:727 !
 ```
 
 ------------------------------------
