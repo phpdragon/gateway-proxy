@@ -44,8 +44,6 @@ build: clean
 	@echo "Building binary..."
 	#go build 参数说明 https://www.cnblogs.com/davygeek/p/6386035.html
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO_CMD) build -o $(APP_BIN_FILE) -ldflags "$(LDFLAGS)" -a -x -v $(APP_GO_FILES)
-	@-chmod a+x -R $(APP_BIN_FILE) $(APP_SCRIPTS_DIR)/*.sh
-	@-dos2unix $(APP_SCRIPTS_DIR)/*.sh
 	@echo "Compile the complete!"
 	@echo
 
@@ -53,6 +51,8 @@ build: clean
 package: build
 	@echo "Taring project package..."
 	@-tar -czvf $(APP_TAR_FILE) -C $(CURRENT_DIR) configs logs $(PROJECT_NAME) scripts/server.sh favicon.ico --exclude=*.log
+	@-chmod a+x -R $(APP_BIN_FILE) $(APP_SCRIPTS_DIR)/*.sh
+	@-dos2unix $(APP_SCRIPTS_DIR)/*.sh
 	@echo "Taring project package over!"
 	@echo
 
