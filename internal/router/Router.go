@@ -58,7 +58,7 @@ func Handler() http.HandlerFunc {
 	}
 }
 
-func favicon(writer http.ResponseWriter, request *http.Request) {
+func favicon(writer http.ResponseWriter, _ *http.Request) {
 	_, err := writer.Write(gFaviconIco)
 	if err != nil {
 		config.Logger().Infof(err.Error())

@@ -13,6 +13,6 @@ type Route struct {
 	ServiceUrl string `orm:"column(service_url)" json:"service"`
 	RateLimit  int    `orm:"column(rate_limit)" json:"rate_limit"`
 	Timeout    int    `orm:"column(timeout)" json:"timeout"`
-	Status     int    `orm:"column(status)" json:"status"`
+	State      int    `orm:"column(state)" json:"state"`
 	Timestamp  string `orm:"column(timestamp)" json:"timestamp"`
 }
