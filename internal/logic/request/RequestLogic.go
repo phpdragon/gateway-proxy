@@ -51,7 +51,7 @@ func HandleHttpRequest(req *http.Request) (interface{}, error) {
 	}
 
 	//调用远程服务
-	remoteData, err := callRemoteService(httpUrl, body, int64(route.Timeout))
+	remoteRsp, err := callRemoteService(httpUrl, body, int64(route.Timeout))
 	if nil != err {
 		return nil, err
 	}
@@ -59,9 +59,7 @@ func HandleHttpRequest(req *http.Request) (interface{}, error) {
 	//访问数量增加一次
 	redis.AccessTotalIncr(route.Id)
 
-	response := base.BuildOK()
-	response.Data = remoteData
-	return response, nil
+	return remoteRsp, nil
 }
 
 func callRemoteService(httpUrl string, req []byte, timeout int64) (interface{}, error) {

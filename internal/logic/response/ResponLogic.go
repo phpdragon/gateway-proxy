@@ -21,7 +21,7 @@ func WriteJson(rw http.ResponseWriter, req *http.Request, response interface{}, 
 	var err error
 	var dataBody []byte
 	if isJson {
-		dataBody, err = json.ToStringByte(response)
+		dataBody, err = json.Ife2Byte(response)
 		if err != nil {
 			config.Logger().Error(err.Error())
 			rw.WriteHeader(http.StatusInternalServerError)

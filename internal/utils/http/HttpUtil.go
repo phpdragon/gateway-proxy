@@ -3,12 +3,13 @@ package http
 import (
 	"bytes"
 	"crypto/tls"
+	"github.com/phpdragon/gateway-proxy/internal/utils/json"
 	"io"
 	"net/http"
 	"time"
 )
 
-func PostByte(url string, postData []byte, timeout int64) ([]byte, error) {
+func PostByte(url string, postData []byte, timeout int64) (interface{}, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -23,13 +24,15 @@ func PostByte(url string, postData []byte, timeout int64) ([]byte, error) {
 	request.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
 	response, err := httpClient.Do(request)
 	if err != nil || response.StatusCode != 200 {
-		return nil, err
+		return "", err
 	}
 
-	return io.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
+	//将[]byte转JSON对象
+	return json.ByteToJsonIfe(body)
 }
 
-func Post(url string, postData string, timeout int64) (string, error) {
+func Post(url string, postData string, timeout int64) (interface{}, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -48,10 +51,11 @@ func Post(url string, postData string, timeout int64) (string, error) {
 	}
 
 	body, err := io.ReadAll(response.Body)
-	return string(body), err
+	//将[]byte转JSON对象
+	return json.ByteToJsonIfe(body)
 }
 
-func Get(url string, timeout int64) (string, error) {
+func Get(url string, timeout int64) (interface{}, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -64,12 +68,10 @@ func Get(url string, timeout int64) (string, error) {
 	request.Header.Set("Connection", "keep-alive")
 	response, err := httpClient.Do(request)
 	if err != nil || response.StatusCode != 200 {
-		return "", nil
+		return "", err
 	}
 
 	body, err := io.ReadAll(response.Body)
-	if err != nil || response.StatusCode != 200 {
-		return "", err
-	}
-	return string(body), err
+	//将[]byte转JSON对象
+	return json.ByteToJsonIfe(body)
 }
