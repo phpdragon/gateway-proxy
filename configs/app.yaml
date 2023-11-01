@@ -23,7 +23,7 @@ log:
 
 eureka:
   serviceUrl:
-    defaultZone: http://172.16.1.155:8761/eureka/
+    defaultZone: http://172.16.1.65:8761/eureka/
   client:
     #指示从eureka服务器获取注册表信息的频率（s）
     registryFetchIntervalSeconds: 30

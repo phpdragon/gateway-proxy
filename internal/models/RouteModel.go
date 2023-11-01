@@ -26,7 +26,7 @@ func QueryAllActiveRoutes() (map[string]Route, error) {
 
 	dbOrm := orm.NewOrm()
 	var routes []Route
-	_, err := dbOrm.QueryTable(Route{}).Filter("status", StatusEnable).All(&routes)
+	_, err := dbOrm.QueryTable(Route{}).Filter("state", StateEnable).All(&routes)
 	if err != nil && !errors.Is(err, orm.ErrNoRows) {
 		return nil, err
 	} else if errors.Is(err, orm.ErrNoRows) {

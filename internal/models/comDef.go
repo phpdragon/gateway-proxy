@@ -1,8 +1,8 @@
 package models
 
 const (
-	StatusDisable = 0
-	StatusEnable  = 1
+	StateDisable = 0
+	StateEnable  = 1
 )
 
 // Route 定义模型结构体，属性大写开头表示public权限，小写为私有
