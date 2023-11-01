@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/phpdragon/gateway-proxy/internal/config"
-	"github.com/phpdragon/gateway-proxy/internal/logic/router"
+	"github.com/phpdragon/gateway-proxy/internal/router"
 	"github.com/phpdragon/gateway-proxy/internal/server"
 	"net/http"
 	"time"
