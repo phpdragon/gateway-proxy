@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -9,9 +8,6 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/logic/router"
 	"github.com/phpdragon/gateway-proxy/internal/server"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
@@ -23,8 +19,6 @@ var (
 
 // 初始化方法
 func init() {
-	flag.Parse()
-
 	config.InitConf(*configPath, *debugMode)
 	config.NewLogger()
 	config.NewMySql()
@@ -33,25 +27,9 @@ func init() {
 	config.NewRabbit()
 }
 
-func listenSignal2(httpServer *http.Server, idleConnClose chan<- struct{}) {
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGHUP, syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
-	<-quit
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	// We received an interrupt signal, shut down.
-	if err := httpServer.Shutdown(ctx); err != nil {
-		config.Logger().Error("Http server shutdown error", err)
-	}
-
-	config.Logger().Info("Http server shutdown！！！")
-
-	close(idleConnClose)
-}
-
 func main() {
+	flag.Parse()
+
 	appConfig := config.GetAppConfig()
 
 	httpServer := &server.HttpServer{
