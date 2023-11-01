@@ -6,7 +6,7 @@ require (
 	github.com/astaxie/beego v1.12.3
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/phpdragon/go-eureka-client v0.0.0-20231101051026-63ac97a16e87
+	github.com/phpdragon/go-eureka-client v0.0.0-20231101095220-a264f92c3da3
 	github.com/rabbitmq/amqp091-go v1.9.0
 	go.uber.org/zap v1.26.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

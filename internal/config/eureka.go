@@ -1,8 +1,6 @@
 package config
 
-import (
-	"github.com/phpdragon/go-eureka-client"
-)
+import "github.com/phpdragon/go-eureka-client"
 
 var eurekaClient *eureka.Client
 

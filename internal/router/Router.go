@@ -19,22 +19,30 @@ type routeInfo struct {
 	handler http.HandlerFunc
 }
 
-var gFaviconIco, _ = os.ReadFile("favicon.ico")
+var (
+	gFaviconIco, _ = os.ReadFile("favicon.ico")
+	routePath      []routeInfo
+)
 
-var routePath = []routeInfo{
-	{path: "^/favicon.ico$", handler: favicon},
-	//处理eureka的心跳等
-	{path: "^/actuator/info$", handler: actuatorInfo},
-	{path: "^/actuator/health$", handler: actuatorHealth},
-	{path: "^/actuator", handler: actuatorAny},
-	{path: "^/actuator/\\w+", handler: actuatorAny},
-	//监听日志级别设置
-	{path: "^/handle/level$", handler: config.GetAtomicLevel().ServeHTTP},
-	//请求入口
-	{path: "^/\\w+$", handler: indexHandler}, // \w：匹配字母、数字、下划线
+func buildRoutes() []routeInfo {
+	if nil != routePath {
+		return routePath
+	}
+
+	routePath := []routeInfo{
+		{path: "^/favicon.ico$", handler: favicon},
+		//处理eureka的心跳等
+		{path: "^/actuator\\w*", handler: config.Eureka().ServeHTTP},
+		//监听日志级别设置
+		{path: "^/handle/level$", handler: config.GetAtomicLevel().ServeHTTP},
+		//请求入口
+		{path: "^/\\w+$", handler: indexHandler}, // \w：匹配字母、数字、下划线
+	}
+	return routePath
 }
 
 func Handler() http.HandlerFunc {
+	routePath := buildRoutes()
 	return func(rspWriter http.ResponseWriter, request *http.Request) {
 		for _, route := range routePath {
 			ok, err := regexp.Match(route.path, []byte(request.URL.Path))
@@ -57,20 +65,6 @@ func favicon(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-func actuatorInfo(writer http.ResponseWriter, request *http.Request) {
-	eurekaClient := config.Eureka()
-	response.WriteJson(writer, request, eurekaClient.ActuatorStatus(), true)
-}
-
-func actuatorHealth(writer http.ResponseWriter, request *http.Request) {
-	eurekaClient := config.Eureka()
-	response.WriteJson(writer, request, eurekaClient.ActuatorHealth(), true)
-}
-
-func actuatorAny(writer http.ResponseWriter, request *http.Request) {
-	response.WriteJson(writer, request, new(interface{}), true)
 }
 
 func indexHandler(rw http.ResponseWriter, req *http.Request) {

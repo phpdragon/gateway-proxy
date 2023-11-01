@@ -92,8 +92,8 @@ github.com/onsi/gomega v1.7.1/go.mod h1:XdKZgCCFLUoM/7CFJVPcG8C1xQ1AJ0vpAezJrB7J
 github.com/pelletier/go-toml v1.0.1/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/pelletier/go-toml v1.2.0/go.mod h1:5z9KED0ma1S8pY6P1sdut58dfprrGBbd/94hg7ilaic=
 github.com/peterh/liner v1.0.1-0.20171122030339-3681c2a91233/go.mod h1:xIteQHvHuaLYG9IFj6mSxM0fCKrs34IrEQUhOYuGPHc=
-github.com/phpdragon/go-eureka-client v0.0.0-20231101051026-63ac97a16e87 h1:Nnwo58NCr+xhpNhjY8W4J6E82f7sVvGW7RkoITg66SM=
-github.com/phpdragon/go-eureka-client v0.0.0-20231101051026-63ac97a16e87/go.mod h1:JyM5LESZNkGVCcn1msQeqVWolIaAPThH+bcvXEec4Sg=
+github.com/phpdragon/go-eureka-client v0.0.0-20231101095220-a264f92c3da3 h1:ucg8pBU38gZvVR+he40QIfOSwOzkjGdup8zg3Cfs5i8=
+github.com/phpdragon/go-eureka-client v0.0.0-20231101095220-a264f92c3da3/go.mod h1:JyM5LESZNkGVCcn1msQeqVWolIaAPThH+bcvXEec4Sg=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
