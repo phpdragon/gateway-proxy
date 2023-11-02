@@ -10,6 +10,7 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
 	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
 	"github.com/phpdragon/gateway-proxy/internal/consts/rspmode"
+	"github.com/phpdragon/gateway-proxy/internal/logic/app"
 	"github.com/phpdragon/gateway-proxy/internal/logic/auth"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
 	"github.com/phpdragon/gateway-proxy/internal/mysql/dao"
@@ -45,7 +46,7 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	}
 
 	//校验App是否已经下线
-	if !checkAppIsOnline(routeConf.AppId) {
+	if !app.CheckAppIsOnline(routeConf.AppId) {
 		config.Logger().Warnf("当前服务已下线, app id: %s", routeConf.AppId)
 		return nil, nil, errors.New("当前服务已下线")
 	}
@@ -142,12 +143,6 @@ func buildXForwardedForHeader(xForwardedFor string) string {
 	}
 
 	return xForwardedFor + "," + localIp
-}
-
-// checkAppIsOnline 校验应用是否在线
-func checkAppIsOnline(appId string) bool {
-	//TODO: 校验应用是否在线
-	return true
 }
 
 // encryptRsp 加密应答

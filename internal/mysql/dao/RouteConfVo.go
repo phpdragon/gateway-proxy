@@ -34,8 +34,8 @@ func QueryAllActiveRoutes() (map[string]entity.RouteConf, error) {
 	}
 
 	var dataMap = make(map[string]entity.RouteConf)
-	for _, route := range routeConfList {
-		dataMap[route.UrlPath] = route
+	for _, routeConf := range routeConfList {
+		dataMap[routeConf.UrlPath] = routeConf
 	}
 	routeConfMap = &dataMap
 	return dataMap, nil
