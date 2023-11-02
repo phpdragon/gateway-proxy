@@ -5,6 +5,8 @@ const ContentType = "content-type"
 const PRAGMA = "pragma"
 const EXPIRES = "expires"
 const ORIGIN = "origin"
+const ContentLength = "content-length"
+const TransferEncoding = "transfer-encoding"
 const AccessControlAllowOrigin = "access-control-allow-origin"
 const AccessControlAllowCredentials = "access-control-allow-credentials"
 

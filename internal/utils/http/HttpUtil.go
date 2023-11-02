@@ -3,13 +3,14 @@ package http
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/phpdragon/gateway-proxy/internal/utils/json"
+	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
-func PostByte(url string, postData []byte, timeout int64) (interface{}, error) {
+func PostByte(url string, postData []byte, reqHeader http.Header, timeout int64) ([]byte, http.Header, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -19,20 +20,35 @@ func PostByte(url string, postData []byte, timeout int64) (interface{}, error) {
 
 	reqBytes := bytes.NewBuffer(postData)
 	request, _ := http.NewRequest(http.MethodPost, url, reqBytes)
-	request.Header.Set("Connection", "keep-alive")
-	request.Header.Set("Content-type", "application/json;charset=UTF-8")
-	request.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
+
+	if nil != reqHeader {
+		for key := range reqHeader {
+			keyLower := strings.ToLower(key)
+			if keyLower == medietype.ContentLength {
+				continue
+			}
+			request.Header.Set(key, reqHeader.Get(key))
+		}
+	} else {
+		request.Header.Set("Connection", "keep-alive")
+		request.Header.Set("Content-type", "application/json;charset=UTF-8")
+		request.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
+	}
+
 	response, err := httpClient.Do(request)
 	if err != nil || response.StatusCode != 200 {
-		return "", err
+		return []byte(""), nil, err
 	}
 
 	body, err := io.ReadAll(response.Body)
-	//将[]byte转JSON对象
-	return json.ByteToJsonIfe(body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response.Header, nil
 }
 
-func Post(url string, postData string, timeout int64) (interface{}, error) {
+func Post(url string, postData string, timeout int64) ([]byte, http.Header, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -47,15 +63,18 @@ func Post(url string, postData string, timeout int64) (interface{}, error) {
 	request.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
 	response, err := httpClient.Do(request)
 	if err != nil || response.StatusCode != 200 {
-		return "", nil
+		return []byte(""), nil, err
 	}
 
 	body, err := io.ReadAll(response.Body)
-	//将[]byte转JSON对象
-	return json.ByteToJsonIfe(body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response.Header, nil
 }
 
-func Get(url string, timeout int64) (interface{}, error) {
+func Get(url string, timeout int64) ([]byte, http.Header, error) {
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -68,10 +87,13 @@ func Get(url string, timeout int64) (interface{}, error) {
 	request.Header.Set("Connection", "keep-alive")
 	response, err := httpClient.Do(request)
 	if err != nil || response.StatusCode != 200 {
-		return "", err
+		return []byte(""), nil, err
 	}
 
 	body, err := io.ReadAll(response.Body)
-	//将[]byte转JSON对象
-	return json.ByteToJsonIfe(body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response.Header, nil
 }

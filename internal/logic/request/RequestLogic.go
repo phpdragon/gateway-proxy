@@ -15,55 +15,55 @@ import (
 	"strings"
 )
 
-func HandleHttpRequest(req *http.Request) (interface{}, error) {
+func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	body, _ := io.ReadAll(req.Body)
 	_ = req.Body.Close()
 
 	if 0 == len(body) {
-		return nil, errors.New("参数不能为空")
+		return nil, nil, errors.New("参数不能为空")
 	}
 
 	routeMap, err := models.QueryAllActiveRoutes()
 	if nil != err {
 		config.Logger().Error(err.Error())
-		return nil, err
+		return nil, nil, err
 	}
 	if nil == routeMap {
-		return nil, errors.New("请开发人员配置转发设置")
+		return nil, nil, errors.New("请开发人员配置转发设置")
 	}
 
 	route, ok := routeMap[req.URL.Path]
 	if !ok {
 		config.Logger().Error(err.Error())
-		return nil, errors.New("请开发人员配置转发设置")
+		return nil, nil, errors.New("请开发人员配置转发设置")
 	}
 
 	//请求频率检测
 	if !limit.CheckAccessRateLimit(route) {
-		return nil, errors.New("请求过于频繁，请稍后再试")
+		return nil, nil, errors.New("请求过于频繁，请稍后再试")
 	}
 
 	//获取真实的链接
 	eurekaClient := config.Eureka()
 	httpUrl, err := eurekaClient.GetRealHttpUrl(route.ServiceUrl)
 	if nil != err {
-		return nil, err
+		return nil, nil, err
 	}
 
 	//调用远程服务
-	remoteRsp, err := callRemoteService(httpUrl, body, int64(route.Timeout))
+	remoteRsp, rspHeader, err := callRemoteService(httpUrl, body, req.Header, int64(route.Timeout))
 	if nil != err {
-		return nil, err
+		return nil, nil, err
 	}
 
 	//访问数量增加一次
 	redis.AccessTotalIncr(route.Id)
 
-	return remoteRsp, nil
+	return remoteRsp, rspHeader, nil
 }
 
-func callRemoteService(httpUrl string, req []byte, timeout int64) (interface{}, error) {
-	return httpUtil.PostByte(httpUrl, req, timeout)
+func callRemoteService(httpUrl string, reqHeader []byte, header http.Header, timeout int64) ([]byte, http.Header, error) {
+	return httpUtil.PostByte(httpUrl, reqHeader, header, timeout)
 }
 
 func getPostParams(rw http.ResponseWriter, req *http.Request) (base.ApiRequest, error) {

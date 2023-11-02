@@ -71,13 +71,13 @@ func indexHandler(rw http.ResponseWriter, req *http.Request) {
 	startTime := date.GetCurrentTimeMillis()
 	config.Logger().Infof("")
 
-	rsp, err := request.HandleHttpRequest(req)
+	rsp, rspHeader, err := request.HandleHttpRequest(req)
 	if nil != err {
 		config.Logger().Error(err.Error())
-		rsp = base.BuildFail(errorcode.SystemError, err.Error())
+		rsp, _ = base.BuildFailByte(errorcode.SystemError, err.Error())
 	}
 
-	response.WriteJson(rw, req, rsp, true)
+	response.WriteByteRsp(rw, req, rsp, rspHeader)
 
 	//打印方法执行耗时的信息
 	endTime := date.GetCurrentTimeMillis()
