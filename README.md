@@ -56,8 +56,26 @@ CREATE TABLE `db_gateway_proxy`.`t_route` (
     UNIQUE KEY `url_path` (`url_path`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='服务路由映射表';
 
+CREATE TABLE  `db_gateway_proxy`.`t_overload` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `app_id` int(11) DEFAULT '0' COMMENT '应用ID',
+  `url_path` varchar(75) DEFAULT '' COMMENT '请求路径',
+  `limit` int(11) DEFAULT '10' COMMENT '限制次数',
+  `interval` int(11) DEFAULT '10' COMMENT '间隔时间，单位秒',
+  `remark` varchar(255) DEFAULT '' COMMENT '请求路径描述',
+  `state` int(1) DEFAULT NULL COMMENT '1:启用,0:禁用',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `url_path` (`url_path`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='过载配置表';
+
 INSERT INTO `db_gateway_proxy`.`t_route`(`id`, `app_id`, `url_path`, `service_url`, `rate_limit`, `timeout`, `rsp_mode`, `state`, `update_time`, `create_time`)
-VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 0, 1, '2020-03-26 19:50:59', '2020-03-26 19:50:59');
+VALUES (1, 100001, '/fileProxy/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 0, 1, '2020-03-26 19:50:59', '2020-03-26 19:50:59');
+
+INSERT INTO `db_gateway_proxy`.`t_overload`(`id`, `app_id`, `url_path`, `limit`, `interval`, `remark`, `state`, `update_time`, `create_time`) 
+VALUES (1, 100001, '/fileProxy/testCtl/demoAction', 5, 10, '', 1, '2023-11-02 18:16:53', '2023-11-02 18:16:53');
+
 
 ```
 
