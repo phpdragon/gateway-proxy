@@ -34,7 +34,7 @@ func checkLimit(cacheKey string, limit int, intervalTime int) (int, bool) {
 		return 0, true
 	}
 
-	count, timeMillis := redis.GetAccessTotal(cacheKey)
+	count, timeMillis := redis.GetAccessTotalAndTimeMillis(cacheKey)
 
 	diffTime := date.GetCurrentTimeMillis() - timeMillis
 	intervalMillis := int64(intervalTime * 1000)

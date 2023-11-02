@@ -19,6 +19,8 @@ var (
 
 // 初始化方法
 func init() {
+	flag.Parse()
+
 	config.InitConf(*configPath, *debugMode)
 	config.NewLogger()
 	config.NewMySql()
@@ -28,14 +30,12 @@ func init() {
 }
 
 func main() {
-	flag.Parse()
-
 	appConfig := config.GetAppConfig()
 
 	httpServer := &server.HttpServer{
 		Server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", appConfig.Server.Port),
-			Handler: router.Handler(),
+			Handler: router.WebHandler(),
 		},
 	}
 

@@ -18,8 +18,8 @@ func GetAccessTotalCacheKey(routeId int, code string) string {
 	return fmt.Sprintf("%s:%s:%d", config.GetAppConfig().AppName, code, routeId)
 }
 
-// GetAccessTotal 访问数量增加一次
-func GetAccessTotal(cacheKey string) (int, int64) {
+// GetAccessTotalAndTimeMillis 获取访问总数和计数时间
+func GetAccessTotalAndTimeMillis(cacheKey string) (int, int64) {
 	cache, err := config.Redis().Get(cacheKey).Result()
 	if nil != err || 0 == len(cache) {
 		return 0, date.GetCurrentTimeMillis()

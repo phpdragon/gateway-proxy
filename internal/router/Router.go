@@ -42,7 +42,7 @@ func buildRoutes() []routeInfo {
 	return routePath
 }
 
-func Handler() http.HandlerFunc {
+func WebHandler() http.HandlerFunc {
 	routePath := buildRoutes()
 	return func(rspWriter http.ResponseWriter, request *http.Request) {
 		for _, route := range routePath {
