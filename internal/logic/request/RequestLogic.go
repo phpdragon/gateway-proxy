@@ -1,18 +1,22 @@
 package request
 
 import (
+	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"github.com/phpdragon/gateway-proxy/internal/base"
 	"github.com/phpdragon/gateway-proxy/internal/config"
+	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
 	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
 	"github.com/phpdragon/gateway-proxy/internal/logic/redis"
 	"github.com/phpdragon/gateway-proxy/internal/models"
-	httpUtil "github.com/phpdragon/gateway-proxy/internal/utils/http"
+	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
@@ -51,7 +55,7 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	}
 
 	//调用远程服务
-	remoteRsp, rspHeader, err := callRemoteService(httpUrl, body, req.Header, int64(route.Timeout))
+	remoteRsp, rspHeader, err := callRemoteService(httpUrl, body, int64(route.Timeout), req)
 	if nil != err {
 		return nil, nil, err
 	}
@@ -62,8 +66,53 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	return remoteRsp, rspHeader, nil
 }
 
-func callRemoteService(httpUrl string, reqHeader []byte, header http.Header, timeout int64) ([]byte, http.Header, error) {
-	return httpUtil.PostByte(httpUrl, reqHeader, header, timeout)
+func callRemoteService(url string, postData []byte, timeout int64, req *http.Request) ([]byte, http.Header, error) {
+	httpClient := &http.Client{
+		Timeout: time.Duration(timeout) * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+
+	reqBytes := bytes.NewBuffer(postData)
+	request, _ := http.NewRequest(http.MethodPost, url, reqBytes)
+
+	if nil != req.Header {
+		for key := range req.Header {
+			request.Header.Set(key, req.Header.Get(key))
+		}
+	} else {
+		request.Header.Set(httpheader.Connection, "keep-alive")
+		request.Header.Set(httpheader.ContentType, "application/json;charset=UTF-8")
+		request.Header.Set(httpheader.UserAgent, "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.143 Safari/537.36")
+	}
+
+	//设置真实IP地址
+	request.Header.Set(httpheader.RemoteAddr, req.RemoteAddr) //兼容PHP
+	request.Header.Set(httpheader.XRealIp, req.RemoteAddr)
+	request.Header.Set(httpheader.XForwardedFor, buildXForwardedForHeader(req.Header.Get(httpheader.XForwardedFor)))
+
+	response, err := httpClient.Do(request)
+	if err != nil || response.StatusCode != 200 {
+		return []byte(""), nil, err
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return body, response.Header, nil
+}
+
+// buildXForwardedForHeader 构造 X-Forwarded-For 报头
+func buildXForwardedForHeader(xForwardedFor string) string {
+	localIp := net.GetLocalIp()
+	if 0 == len(xForwardedFor) {
+		return localIp
+	}
+
+	return xForwardedFor + "," + localIp
 }
 
 func getPostParams(rw http.ResponseWriter, req *http.Request) (base.ApiRequest, error) {
@@ -78,7 +127,7 @@ func getPostParams(rw http.ResponseWriter, req *http.Request) (base.ApiRequest, 
 		return base.ApiRequest{}, err
 	}
 
-	contentType := strings.ToLower(rw.Header().Get(medietype.ContentType))
+	contentType := strings.ToLower(rw.Header().Get(httpheader.ContentType))
 
 	var requestData = base.ApiRequest{}
 	if strings.Contains(contentType, medietype.ApplicationJson) {

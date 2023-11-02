@@ -1,0 +1,18 @@
+package httpheader
+
+const Connection = "Connection"
+const CacheControl = "Cache-Control"
+const ContentType = "Content-Type"
+const ContentLength = "Content-Length"
+const TransferEncoding = "Transfer-Encoding"
+const PRAGMA = "Pragma"
+const EXPIRES = "Expires"
+const ORIGIN = "Origin"
+const UserAgent = "User-Agent"
+const XRealIp = "X-Real-IP"
+const RemoteAddr = "REMOTE-ADDR"
+const XForwardedFor = "X-Forwarded-For"
+const AccessControlAllowOrigin = "Access-Control-Allow-Origin"
+const AccessControlAllowMethods = "Access-Control-Allow-Methods"
+const AccessControlAllowHeaders = "Access-Control-Allow-Headers"
+const AccessControlAllowCredentials = "Access-Control-Allow-Credentials"
