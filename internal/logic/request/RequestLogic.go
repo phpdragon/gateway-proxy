@@ -12,7 +12,8 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/consts/rspmode"
 	"github.com/phpdragon/gateway-proxy/internal/logic/auth"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
-	"github.com/phpdragon/gateway-proxy/internal/models"
+	"github.com/phpdragon/gateway-proxy/internal/mysql/dao"
+	routeModel "github.com/phpdragon/gateway-proxy/internal/mysql/models/route"
 	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
@@ -28,7 +29,14 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 		return nil, nil, errors.New("参数不能为空")
 	}
 
-	routeMap, err := models.QueryAllActiveRoutes()
+	Id := routeModel.EmptyModel.Id
+
+	routeMap2, err := routeModel.QueryAllActiveRoutes()
+	if nil != err {
+		config.Logger().Errorf("2222222系统无法路由当前请求,请联系开发人员进行配置, error: %v, %d", routeMap2, Id)
+	}
+
+	routeMap, err := dao.QueryAllActiveRoutes()
 	if nil != err {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s, error: %v", req.URL.Path, err.Error())
 		return nil, nil, errors.New("系统无法路由当前请求,请联系开发人员进行配置")
@@ -57,14 +65,15 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	}
 
 	//请求频率检测
-	accessTotal, checked := limit.CheckAccessRateLimit(&route)
+	accessTotal, checked := limit.CheckAccessRateLimit(&route, route.RateLimit, 1000)
 	if !checked {
 		config.Logger().Warnf("请求过于频繁，请稍后再试, route id: %d", route.Id)
 		return nil, nil, errors.New("请求过于频繁，请稍后再试")
 	}
 
 	//过载保护
-	if !limit.CHeckOverload(&route) {
+	overload, checked := limit.CheckAccessRateLimit(&route, route.RateLimit, 1000)
+	if !checked {
 		config.Logger().Warnf("服务器请求繁忙，请稍后重试, route id: %d", route.Id)
 		return nil, nil, errors.New("服务器请求繁忙，请稍后重试")
 	}
@@ -85,7 +94,7 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	}
 
 	//访问数量增加一次
-	limit.AccessTotalIncr(&route, accessTotal)
+	limit.TotalIncr(&route, accessTotal, overload)
 
 	if rspmode.ENCRYPT != route.RspMode {
 		remoteRsp = encryptRsp(remoteRsp)

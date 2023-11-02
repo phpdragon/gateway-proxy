@@ -32,7 +32,7 @@ func GetAccessTotal(routeId int) (int, int64) {
 func AccessTotalIncrBy(routeId int, total int) {
 	key := getAccessTotalCacheKey(routeId)
 	val := fmt.Sprintf("%d|%d", date.GetCurrentTimeMillis(), total+1)
-	err := config.Redis().Set(key, val, 180*time.Second).Err()
+	err := config.Redis().Set(key, val, 5*time.Second).Err()
 	if nil != err {
 		config.Logger().Errorf("访问数量增加次数异常：%v", err.Error())
 	}
