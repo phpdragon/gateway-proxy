@@ -13,7 +13,6 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/logic/auth"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
 	"github.com/phpdragon/gateway-proxy/internal/mysql/dao"
-	routeModel "github.com/phpdragon/gateway-proxy/internal/mysql/models/route"
 	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
@@ -29,74 +28,67 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 		return nil, nil, errors.New("参数不能为空")
 	}
 
-	Id := routeModel.EmptyModel.Id
-
-	routeMap2, err := routeModel.QueryAllActiveRoutes()
-	if nil != err {
-		config.Logger().Errorf("2222222系统无法路由当前请求,请联系开发人员进行配置, error: %v, %d", routeMap2, Id)
-	}
-
-	routeMap, err := dao.QueryAllActiveRoutes()
+	routeConfMap, err := dao.QueryAllActiveRoutes()
 	if nil != err {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s, error: %v", req.URL.Path, err.Error())
 		return nil, nil, errors.New("系统无法路由当前请求,请联系开发人员进行配置")
 	}
-	if nil == routeMap {
+	if nil == routeConfMap {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s", req.URL.Path)
 		return nil, nil, errors.New("系统无法路由当前请求,请开发人员配置转发设置")
 	}
 
-	route, ok := routeMap[req.URL.Path]
+	routeConf, ok := routeConfMap[req.URL.Path]
 	if !ok {
 		config.Logger().Errorf("请开发人员配置转发设置, urlPath: %s", req.URL.Path)
 		return nil, nil, errors.New("请开发人员配置转发设置")
 	}
 
 	//校验App是否已经下线
-	if !checkAppIsOnline(route.AppId) {
-		config.Logger().Warnf("当前服务已下线, app id: %s", route.AppId)
+	if !checkAppIsOnline(routeConf.AppId) {
+		config.Logger().Warnf("当前服务已下线, app id: %s", routeConf.AppId)
 		return nil, nil, errors.New("当前服务已下线")
 	}
 
 	//鉴权
-	if !auth.CheckSession(&route) {
-		config.Logger().Warnf("当前会话鉴权无效, route id: %d", route.Id)
+	if !auth.CheckSession(&routeConf) {
+		config.Logger().Warnf("当前会话鉴权无效, routeConf id: %d", routeConf.Id)
 		return nil, nil, errors.New("当前会话鉴权无效")
 	}
 
 	//请求频率检测
-	accessTotal, checked := limit.CheckAccessRateLimit(&route, route.RateLimit, 1000)
+	accessTotal, checked := limit.CheckAccessRateLimit(&routeConf)
 	if !checked {
-		config.Logger().Warnf("请求过于频繁，请稍后再试, route id: %d", route.Id)
+		config.Logger().Warnf("请求过于频繁，请稍后再试, routeConf id: %d", routeConf.Id)
 		return nil, nil, errors.New("请求过于频繁，请稍后再试")
 	}
 
 	//过载保护
-	overload, checked := limit.CheckAccessRateLimit(&route, route.RateLimit, 1000)
-	if !checked {
-		config.Logger().Warnf("服务器请求繁忙，请稍后重试, route id: %d", route.Id)
+	overload, chk := limit.CheckOverloadLimit(&routeConf)
+	if !chk {
+		config.Logger().Warnf("服务器请求繁忙，请稍后重试, routeConf id: %d", routeConf.Id)
 		return nil, nil, errors.New("服务器请求繁忙，请稍后重试")
 	}
 
 	//获取真实的链接
 	eurekaClient := config.Eureka()
-	httpUrl, err := eurekaClient.GetRealHttpUrl(route.ServiceUrl)
+	httpUrl, err := eurekaClient.GetRealHttpUrl(routeConf.ServiceUrl)
 	if nil != err {
-		config.Logger().Errorf("获取下游真实地址异常，请稍后重试, route id: %d, error: %v", route.Id, err)
+		config.Logger().Errorf("获取下游真实地址异常，请稍后重试, routeConf id: %d, error: %v", routeConf.Id, err)
 		return nil, nil, errors.New("服务器请求异常，请稍后重试")
 	}
 
 	//调用远程服务
-	remoteRsp, rspHeader, err := callRemoteService(httpUrl, body, int64(route.Timeout), req)
+	remoteRsp, rspHeader, err := callRemoteService(httpUrl, body, int64(routeConf.Timeout), req)
 	if nil != err {
-		config.Logger().Errorf("转发请求至下游异常, route id: %d, error: %v", route.Id, err)
+		config.Logger().Errorf("转发请求至下游异常, routeConf id: %d, error: %v", routeConf.Id, err)
 		return nil, nil, errors.New("服务器转发异常，请稍后重试")
 	}
 
 	//访问数量增加一次
-	limit.TotalIncr(&route, accessTotal, overload)
+	limit.TotalIncr(&routeConf, accessTotal, overload)
 
-	if rspmode.ENCRYPT != route.RspMode {
+	if rspmode.ENCRYPT != routeConf.RspMode {
 		remoteRsp = encryptRsp(remoteRsp)
 	}
 

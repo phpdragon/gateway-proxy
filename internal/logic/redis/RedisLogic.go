@@ -9,14 +9,18 @@ import (
 	"time"
 )
 
-func getAccessTotalCacheKey(key int) string {
-	return fmt.Sprintf("%s:access_total:%d", config.GetAppConfig().AppName, key)
+const (
+	CacheKeyRateLimit = "rateLimit"
+	CacheKeyOverload  = "overload"
+)
+
+func GetAccessTotalCacheKey(routeId int, code string) string {
+	return fmt.Sprintf("%s:%s:%d", config.GetAppConfig().AppName, code, routeId)
 }
 
 // GetAccessTotal 访问数量增加一次
-func GetAccessTotal(routeId int) (int, int64) {
-	key := getAccessTotalCacheKey(routeId)
-	cache, err := config.Redis().Get(key).Result()
+func GetAccessTotal(cacheKey string) (int, int64) {
+	cache, err := config.Redis().Get(cacheKey).Result()
 	if nil != err || 0 == len(cache) {
 		return 0, date.GetCurrentTimeMillis()
 	}
@@ -29,10 +33,9 @@ func GetAccessTotal(routeId int) (int, int64) {
 }
 
 // AccessTotalIncrBy 访问数量增加次数
-func AccessTotalIncrBy(routeId int, total int) {
-	key := getAccessTotalCacheKey(routeId)
+func AccessTotalIncrBy(key string, total int, expiration int) {
 	val := fmt.Sprintf("%d|%d", date.GetCurrentTimeMillis(), total+1)
-	err := config.Redis().Set(key, val, 5*time.Second).Err()
+	err := config.Redis().Set(key, val, time.Second*time.Duration(expiration)).Err()
 	if nil != err {
 		config.Logger().Errorf("访问数量增加次数异常：%v", err.Error())
 	}
