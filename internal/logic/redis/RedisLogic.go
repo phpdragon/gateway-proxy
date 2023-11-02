@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"fmt"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
 	"strconv"
@@ -8,15 +9,13 @@ import (
 	"time"
 )
 
-const AppName = "gateway-proxy:"
-
-func getAccessTotalCacheKey(key string) string {
-	return AppName + "access_total:" + key
+func getAccessTotalCacheKey(key int) string {
+	return fmt.Sprintf("%s:access_total:%d", config.GetAppConfig().AppName, key)
 }
 
 // GetAccessTotal 访问数量增加一次
 func GetAccessTotal(routeId int) (int, int64) {
-	key := getAccessTotalCacheKey(strconv.Itoa(routeId))
+	key := getAccessTotalCacheKey(routeId)
 	cache, err := config.Redis().Get(key).Result()
 	if nil != err || 0 == len(cache) {
 		return 0, date.GetCurrentTimeMillis()
@@ -29,28 +28,12 @@ func GetAccessTotal(routeId int) (int, int64) {
 	return count, timeMillis
 }
 
-// AccessTotalIncr 访问数量增加一次
-func AccessTotalIncr(routeId int) {
-	key := getAccessTotalCacheKey(strconv.Itoa(routeId))
-	cache, err := config.Redis().Get(key).Result()
-	if nil != err || 0 == len(cache) {
-		return
-	}
-
-	val := strings.Split(cache, "|")
-	count, _ := strconv.Atoi(val[1])
-	//
-	count++
-	//
-	AccessTotalIncrBy(routeId, count)
-}
-
 // AccessTotalIncrBy 访问数量增加次数
 func AccessTotalIncrBy(routeId int, total int) {
-	key := getAccessTotalCacheKey(strconv.Itoa(routeId))
-	val := strconv.FormatInt(date.GetCurrentTimeMillis(), 10) + "|" + strconv.Itoa(total)
+	key := getAccessTotalCacheKey(routeId)
+	val := fmt.Sprintf("%d|%d", date.GetCurrentTimeMillis(), total+1)
 	err := config.Redis().Set(key, val, 180*time.Second).Err()
 	if nil != err {
-		config.Logger().Error(err.Error())
+		config.Logger().Errorf("访问数量增加次数异常：%v", err.Error())
 	}
 }

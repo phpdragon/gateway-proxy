@@ -79,7 +79,6 @@ func indexHandle(rw http.ResponseWriter, req *http.Request) {
 
 	rsp, rspHeader, err := request.HandleHttpRequest(req)
 	if nil != err {
-		config.Logger().Error(err.Error())
 		rsp, _ = base.BuildFailByte(errorcode.SystemError, err.Error())
 	}
 

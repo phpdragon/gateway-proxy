@@ -40,21 +40,24 @@ gateway-proxy/
 ```mysql
 CREATE DATABASE db_gateway_proxy;
 
-CREATE TABLE db_gateway_proxy.`t_route` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `app_id` int(11) DEFAULT '0' COMMENT 'appId',
-  `url_path` varchar(75) DEFAULT NULL COMMENT 'URI路径',
-  `service_url` varchar(300) DEFAULT NULL COMMENT '服务名',
-  `rate_limit` int(11) DEFAULT '10' COMMENT '频率限制每秒次数',
-  `timeout` int(11) DEFAULT '10' COMMENT '微服务调用超时时间，秒',
-  `state` int(1) DEFAULT NULL COMMENT '1:启用,0:禁用',
-  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `url_path` (`url_path`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='cmd 服务名映射表';
+CREATE TABLE `db_gateway_proxy`.`t_route` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `app_id` int(11) DEFAULT '0' COMMENT '应用ID',
+    `url_path` varchar(75) DEFAULT '' COMMENT '请求路径，建议:/appName/module/action',
+    `service_url` varchar(300) DEFAULT '' COMMENT '下游Url，支持eureka模式和域名、ip端口模式',
+    `rate_limit` int(11) DEFAULT '10' COMMENT '频率限制，每秒次数',
+    `timeout` int(11) DEFAULT '10' COMMENT '超时时间，单位秒',
+    `rsp_mode` int(1) DEFAULT '0' COMMENT '应答模式：0-明文,1-加密',
+    `remark` varchar(255) DEFAULT '' COMMENT '请求路径描述',
+    `state` int(1) DEFAULT NULL COMMENT '1:启用,0:禁用',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `url_path` (`url_path`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='服务路由映射表';
 
-INSERT INTO `db_gateway_proxy`.`t_route`(`id`, `app_id`, `url_path`, `service_url`, `rate_limit`, `timeout`, `state`, `timestamp`)
-VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 1, '2020-03-26 19:50:59');
+INSERT INTO `db_gateway_proxy`.`t_route`(`id`, `app_id`, `url_path`, `service_url`, `rate_limit`, `timeout`, `rsp_mode`, `state`, `update_time`, `create_time`)
+VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 0, 1, '2020-03-26 19:50:59', '2020-03-26 19:50:59');
 
 ```
 
