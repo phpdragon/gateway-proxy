@@ -3,10 +3,8 @@ package http
 import (
 	"bytes"
 	"crypto/tls"
-	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -23,10 +21,10 @@ func PostByte(url string, postData []byte, reqHeader http.Header, timeout int64)
 
 	if nil != reqHeader {
 		for key := range reqHeader {
-			keyLower := strings.ToLower(key)
-			if keyLower == medietype.ContentLength {
-				continue
-			}
+			//keyLower := strings.ToLower(key)
+			//if keyLower == strings.ToLower(medietype.ContentLength) {
+			//	continue
+			//}
 			request.Header.Set(key, reqHeader.Get(key))
 		}
 	} else {

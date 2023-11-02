@@ -5,6 +5,7 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/base"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/errorcode"
+	"github.com/phpdragon/gateway-proxy/internal/consts/httpcode"
 	"github.com/phpdragon/gateway-proxy/internal/logic/request"
 	"github.com/phpdragon/gateway-proxy/internal/logic/response"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
@@ -36,7 +37,7 @@ func buildRoutes() []routeInfo {
 		//监听日志级别设置
 		{path: "^/handle/level$", handler: config.GetAtomicLevel().ServeHTTP},
 		//请求入口
-		{path: "^/\\w+$", handler: indexHandler}, // \w：匹配字母、数字、下划线
+		{path: "^/\\w+$", handler: indexHandle}, // \w：匹配字母、数字、下划线
 	}
 	return routePath
 }
@@ -67,7 +68,12 @@ func favicon(writer http.ResponseWriter, _ *http.Request) {
 	}
 }
 
-func indexHandler(rw http.ResponseWriter, req *http.Request) {
+func indexHandle(rw http.ResponseWriter, req *http.Request) {
+	if http.MethodOptions == req.Method {
+		response.WriteStatusCode(rw, req, httpcode.NoContent)
+		return
+	}
+
 	startTime := date.GetCurrentTimeMillis()
 	config.Logger().Infof("")
 

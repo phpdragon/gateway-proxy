@@ -38,7 +38,8 @@ func WriteByteRsp(rw http.ResponseWriter, req *http.Request, response []byte, rs
 	if rspHeader != nil {
 		for key := range rspHeader {
 			keyLower := strings.ToLower(key)
-			if keyLower == medietype.ContentLength || keyLower == medietype.TransferEncoding {
+			if keyLower == strings.ToLower(medietype.ContentLength) ||
+				keyLower == strings.ToLower(medietype.TransferEncoding) {
 				continue
 			}
 			rw.Header().Set(key, rspHeader.Get(key))
@@ -51,11 +52,7 @@ func WriteByteRsp(rw http.ResponseWriter, req *http.Request, response []byte, rs
 	}
 
 	//设置跨域报头
-	origin := req.Header.Get(medietype.ORIGIN)
-	if 0 < len(origin) {
-		rw.Header().Set(medietype.AccessControlAllowOrigin, origin)
-		rw.Header().Set(medietype.AccessControlAllowCredentials, "true")
-	}
+	setCrossDomainHeaders(rw, req)
 
 	_, err := rw.Write(response)
 	if err != nil {
@@ -63,4 +60,22 @@ func WriteByteRsp(rw http.ResponseWriter, req *http.Request, response []byte, rs
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// setCrossDomainHeaders 设置跨域报头
+func setCrossDomainHeaders(rw http.ResponseWriter, req *http.Request) {
+	origin := req.Header.Get(medietype.ORIGIN)
+	if 0 < len(origin) {
+		rw.Header().Set(medietype.AccessControlAllowOrigin, origin)
+		rw.Header().Set(medietype.AccessControlAllowMethods, req.Method)
+		rw.Header().Set(medietype.AccessControlAllowHeaders, "*")
+		rw.Header().Set(medietype.AccessControlAllowCredentials, "true")
+	}
+}
+
+func WriteStatusCode(rw http.ResponseWriter, req *http.Request, statusCode int) {
+	//设置跨域报头
+	setCrossDomainHeaders(rw, req)
+	rw.Header().Set(medietype.ContentLength, "0")
+	rw.WriteHeader(statusCode)
 }
