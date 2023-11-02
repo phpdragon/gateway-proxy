@@ -21,6 +21,10 @@ func NewRedis() {
 		DB:       redisConfig.Db,       // use default DB
 		PoolSize: poolSize,
 	})
+
+	if err := redisClient.Ping().Err(); nil != err {
+		Logger().Fatalf("Init redis failed. %v", err)
+	}
 }
 
 func Redis() *redis.Client {

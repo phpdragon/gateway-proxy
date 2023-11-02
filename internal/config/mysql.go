@@ -6,7 +6,6 @@ import (
 
 	// import your used driver
 	_ "github.com/go-sql-driver/mysql"
-	"os"
 )
 
 func NewMySql() {
@@ -16,8 +15,7 @@ func NewMySql() {
 
 	// set default database
 	if err := orm.RegisterDataBase("default", "mysql", dataSource); err != nil {
-		Logger().Error("Init db failed. error: %s", fmt.Sprint(err))
-		os.Exit(1)
+		Logger().Fatalf("Init db failed. %v", err)
 	}
 
 	Logger().Infof("Init db success. url: %s", fmt.Sprintf("%s:****@tcp(%s)/%s?charset=%s", dbConfig.User, dbConfig.Host, dbConfig.DbName, dbConfig.Charset))
