@@ -27,13 +27,13 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
 	routeConfMap := routeLogic.QueryAllActiveRoutes()
 	if nil == routeConfMap {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s", req.URL.Path)
-		return nil, nil, false, errors.New("系统无法路由当前请求,请开发人员配置转发设置")
+		return nil, nil, true, errors.New("系统无法路由当前请求,请开发人员配置转发设置")
 	}
 
 	routeConf, ok := routeConfMap[req.URL.Path]
 	if !ok {
 		config.Logger().Errorf("请开发人员配置转发设置, urlPath: %s", req.URL.Path)
-		return nil, nil, false, errors.New("请开发人员配置转发设置")
+		return nil, nil, true, errors.New("请开发人员配置转发设置")
 	}
 
 	//判断跨域
@@ -52,35 +52,35 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
 	//鉴权
 	if !auth.CheckSession(&routeConf) {
 		config.Logger().Warnf("当前会话鉴权无效, routeConf id: %d", routeConf.Id)
-		return nil, nil, false, errors.New("当前会话鉴权无效")
+		return nil, nil, true, errors.New("当前会话鉴权无效")
 	}
 
 	//请求频率检测
 	accessTotal, checked := limit.CheckAccessRateLimit(&routeConf)
 	if !checked {
 		config.Logger().Warnf("请求过于频繁，请稍后再试, routeConf id: %d", routeConf.Id)
-		return nil, nil, false, errors.New("请求过于频繁，请稍后再试")
+		return nil, nil, true, errors.New("请求过于频繁，请稍后再试")
 	}
 
 	//过载保护
 	overload, chk := limit.CheckOverloadLimit(&routeConf)
 	if !chk {
 		config.Logger().Warnf("服务器请求繁忙，请稍后重试, routeConf id: %d", routeConf.Id)
-		return nil, nil, false, errors.New("服务器繁忙，请稍后重试")
+		return nil, nil, true, errors.New("服务器繁忙，请稍后重试")
 	}
 
 	//获取真实的请求链接
 	httpUrl, err := getRemoteHttpUrl(req.URL, routeConf.ServiceUrl)
 	if nil != err {
 		config.Logger().Errorf("获取下游真实地址异常，请稍后重试, routeConf id: %d, error: %v", routeConf.Id, err)
-		return nil, nil, false, errors.New("请求处理异常，请稍后重试")
+		return nil, nil, true, errors.New("请求处理异常，请稍后重试")
 	}
 
 	//调用远程服务
 	remoteRsp, rspHeader, err := callRemoteUrl(req, httpUrl, routeConf.Timeout)
 	if nil != err {
 		config.Logger().Errorf("转发请求至下游异常, routeConf id: %d, error: %v", routeConf.Id, err)
-		return nil, nil, false, errors.New("请求转发异常，请稍后重试")
+		return nil, nil, true, errors.New("请求转发异常，请稍后重试")
 	}
 
 	//访问数量增加一次
