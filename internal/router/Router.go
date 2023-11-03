@@ -68,6 +68,7 @@ func favicon(writer http.ResponseWriter, _ *http.Request) {
 }
 
 func indexHandle(rw http.ResponseWriter, req *http.Request) {
+	//TODO: 根据配置来判定是否需要处理跨域
 	//if http.MethodOptions == req.Method {
 	//	response.WriteStatusCode(rw, req, httpcode.NoContent)
 	//	return

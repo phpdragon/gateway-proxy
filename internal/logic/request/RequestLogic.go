@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/phpdragon/gateway-proxy/internal/base"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
@@ -17,6 +18,7 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -72,7 +74,7 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	}
 
 	//调用远程服务
-	remoteRsp, rspHeader, err := callRemoteUrl(req, realUrl, int64(routeConf.Timeout))
+	remoteRsp, rspHeader, err := callRemoteUrl(req, realUrl, routeConf.Timeout)
 	if nil != err {
 		config.Logger().Errorf("转发请求至下游异常, routeConf id: %d, error: %v", routeConf.Id, err)
 		return nil, nil, errors.New("请求转发异常，请稍后重试")
@@ -100,7 +102,7 @@ func getRealHttpUrl(serviceUrl string) (string, error) {
 	return httpUrl, err
 }
 
-func callRemoteUrl(req *http.Request, url string, timeout int64) ([]byte, http.Header, error) {
+func callRemoteUrl(req *http.Request, url string, timeout int) ([]byte, http.Header, error) {
 	reqBody, _ := io.ReadAll(req.Body)
 	_ = req.Body.Close()
 
@@ -111,8 +113,9 @@ func callRemoteUrl(req *http.Request, url string, timeout int64) ([]byte, http.H
 		},
 	}
 
+	httpUrl := buildHttpUrl(url, req.URL)
 	reqBytes := bytes.NewBuffer(reqBody)
-	request, _ := http.NewRequest(req.Method, url, reqBytes)
+	request, _ := http.NewRequest(req.Method, httpUrl, reqBytes)
 
 	if nil != req.Header {
 		for key := range req.Header {
@@ -140,6 +143,43 @@ func callRemoteUrl(req *http.Request, url string, timeout int64) ([]byte, http.H
 	}
 
 	return rspBody, response.Header, nil
+}
+
+func buildHttpUrl(url string, srcUrl *url.URL) string {
+	targetUrl, err := srcUrl.Parse(url)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var buf strings.Builder
+
+	//写入协议头https
+	buf.WriteString(targetUrl.Scheme)
+	buf.WriteByte(':')
+	buf.WriteString("//")
+
+	//写入 用户名:密码@
+	if ui := srcUrl.User; ui != nil {
+		buf.WriteString(ui.String())
+		buf.WriteByte('@')
+	}
+
+	//写入 host:port
+	buf.WriteString(targetUrl.Host)
+	buf.WriteString(targetUrl.Path)
+
+	//写入 请求参数
+	if srcUrl.ForceQuery || srcUrl.RawQuery != "" {
+		buf.WriteByte('?')
+		buf.WriteString(srcUrl.RawQuery)
+	}
+
+	//写入 片段
+	if srcUrl.Fragment != "" {
+		buf.WriteByte('#')
+		buf.WriteString(srcUrl.Fragment)
+	}
+	return buf.String()
 }
 
 // buildXForwardedForHeader 构造 X-Forwarded-For 报头
