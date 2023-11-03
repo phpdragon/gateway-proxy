@@ -6,9 +6,11 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/errorcode"
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpcode"
+	"github.com/phpdragon/gateway-proxy/internal/consts/route"
 	"github.com/phpdragon/gateway-proxy/internal/logic/request"
 	"github.com/phpdragon/gateway-proxy/internal/logic/response"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
+	jsonUtil "github.com/phpdragon/gateway-proxy/internal/utils/json"
 	"net/http"
 	"os"
 	"regexp"
@@ -35,7 +37,8 @@ func buildRoutes() []routeInfo {
 		//处理eureka的心跳等
 		{path: "^/actuator\\w*", handler: config.Eureka().ServeHTTP},
 		//监听日志级别设置
-		{path: "^/handle/level$", handler: config.GetAtomicLevel().ServeHTTP},
+		{path: fmt.Sprintf("^%slogLevel$", route.RouterSystem), handler: config.GetAtomicLevel().ServeHTTP},
+		{path: fmt.Sprintf("^%s\\w*", route.RouterSystem), handler: systemHandle},
 		//请求入口
 		{path: "^/\\w+$", handler: indexHandle}, // \w：匹配字母、数字、下划线
 	}
@@ -91,6 +94,18 @@ func indexHandle(rw http.ResponseWriter, req *http.Request) {
 	//打印方法执行耗时的信息
 	endTime := date.GetCurrentTimeMillis()
 	printExecTime(startTime, endTime)
+}
+
+func systemHandle(rw http.ResponseWriter, req *http.Request) {
+	request.HandleSystemRequest(req)
+
+	rsp, _ := jsonUtil.Ife2Byte(base.BuildOK())
+	_, err := rw.Write(rsp)
+	if err != nil {
+		config.Logger().Error(err.Error())
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // 打印方法执行耗时的信息

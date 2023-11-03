@@ -8,6 +8,11 @@ import (
 // allActiveApps 所有应用配置
 var allActiveApps *map[string]models.Application
 
+func Refresh() {
+	allActiveApps = nil
+	GetAppConfMap()
+}
+
 // CheckAppIsOnline 校验应用是否在线
 func CheckAppIsOnline(appId string) bool {
 	configMap := GetAppConfMap()

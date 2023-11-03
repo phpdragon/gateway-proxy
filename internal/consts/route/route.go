@@ -1,5 +1,9 @@
 package route
 
+const SysRefreshKey = "6b71e64a1081cabf8fdc228bc0cbc74d"
+
+const RouterSystem = "/system/"
+
 // RspModeDefault 明文应答
 const RspModeDefault = 0
 

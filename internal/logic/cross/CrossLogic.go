@@ -9,6 +9,11 @@ import (
 
 var crossDomainConfMap *map[int]map[string]map[string]models.CrossDomain
 
+func Refresh() {
+	crossDomainConfMap = nil
+	getAllActiveDomains()
+}
+
 func CheckDomain(routeConf *models.RouteConf, origin string) bool {
 	//系统处理跨域，直接返回真
 	if route.CrossModeAllow == routeConf.CrossMode {

@@ -7,6 +7,11 @@ import (
 
 var routeConfMap *map[string]models.RouteConf
 
+func Refresh() {
+	routeConfMap = nil
+	QueryAllActiveRoutes()
+}
+
 func QueryAllActiveRoutes() map[string]models.RouteConf {
 	if nil != routeConfMap {
 		return *routeConfMap

@@ -9,12 +9,13 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
 	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
-	"github.com/phpdragon/gateway-proxy/internal/consts/route"
+	routeConst "github.com/phpdragon/gateway-proxy/internal/consts/route"
 	"github.com/phpdragon/gateway-proxy/internal/logic/app"
 	"github.com/phpdragon/gateway-proxy/internal/logic/auth"
 	"github.com/phpdragon/gateway-proxy/internal/logic/cross"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
-	routeLogic "github.com/phpdragon/gateway-proxy/internal/logic/route"
+	"github.com/phpdragon/gateway-proxy/internal/logic/route"
+	httpUtil "github.com/phpdragon/gateway-proxy/internal/utils/http"
 	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
@@ -23,8 +24,19 @@ import (
 	"time"
 )
 
+func HandleSystemRequest(req *http.Request) {
+	action := strings.Replace(req.URL.Path, routeConst.RouterSystem, "", 1)
+
+	param := httpUtil.ParseGetArgs(req.URL.RawQuery)
+	if "refresh" == action && routeConst.SysRefreshKey == param["key"] {
+		app.Refresh()
+		route.Refresh()
+		cross.Refresh()
+	}
+}
+
 func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
-	routeConfMap := routeLogic.QueryAllActiveRoutes()
+	routeConfMap := route.QueryAllActiveRoutes()
 	if nil == routeConfMap {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s", req.URL.Path)
 		return nil, nil, true, errors.New("系统无法路由当前请求,请开发人员配置转发设置")
@@ -86,7 +98,7 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
 	//访问数量增加一次
 	limit.TotalIncr(&routeConf, accessTotal, overload)
 
-	if route.RspModeEncrypt != routeConf.RspMode {
+	if routeConst.RspModeEncrypt != routeConf.RspMode {
 		remoteRsp = encryptRsp(remoteRsp)
 	}
 

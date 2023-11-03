@@ -6,8 +6,22 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
+
+// ParseGetArgs 获取GET参数
+func ParseGetArgs(query string) map[string]string {
+	queryArr := strings.Split(query, "&")
+	param := make(map[string]string)
+
+	for _, v := range queryArr {
+		tmp := strings.Split(v, "=")
+		param[tmp[0]] = tmp[1]
+	}
+
+	return param
+}
 
 func Post(url string, postData string, timeout int64) ([]byte, http.Header, error) {
 	httpClient := &http.Client{
