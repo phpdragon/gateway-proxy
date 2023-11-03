@@ -75,6 +75,7 @@ func indexHandle(rw http.ResponseWriter, req *http.Request) {
 	//处理请求
 	rsp, rspHeader, crossDomain, err := request.HandleHttpRequest(req)
 	if nil != err {
+		//当前系统的报错支持跨域处理
 		crossDomain = true
 		rsp, _ = base.BuildFailByte(errorcode.SystemError, err.Error())
 	}
