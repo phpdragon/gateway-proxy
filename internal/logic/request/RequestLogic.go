@@ -22,13 +22,6 @@ import (
 )
 
 func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
-	body, _ := io.ReadAll(req.Body)
-	_ = req.Body.Close()
-
-	if 0 == len(body) {
-		return nil, nil, errors.New("参数不能为空")
-	}
-
 	routeConfMap, err := dao.QueryAllActiveRoutes()
 	if nil != err {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s, error: %v", req.URL.Path, err.Error())
@@ -68,22 +61,21 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	overload, chk := limit.CheckOverloadLimit(&routeConf)
 	if !chk {
 		config.Logger().Warnf("服务器请求繁忙，请稍后重试, routeConf id: %d", routeConf.Id)
-		return nil, nil, errors.New("服务器请求繁忙，请稍后重试")
+		return nil, nil, errors.New("服务器繁忙，请稍后重试")
 	}
 
 	//获取真实的链接
-	eurekaClient := config.Eureka()
-	httpUrl, err := eurekaClient.GetRealHttpUrl(routeConf.ServiceUrl)
+	realUrl, err := getRealHttpUrl(routeConf.ServiceUrl)
 	if nil != err {
 		config.Logger().Errorf("获取下游真实地址异常，请稍后重试, routeConf id: %d, error: %v", routeConf.Id, err)
-		return nil, nil, errors.New("服务器请求异常，请稍后重试")
+		return nil, nil, errors.New("请求处理异常，请稍后重试")
 	}
 
 	//调用远程服务
-	remoteRsp, rspHeader, err := callRemoteService(httpUrl, body, int64(routeConf.Timeout), req)
+	remoteRsp, rspHeader, err := callRemoteUrl(req, realUrl, int64(routeConf.Timeout))
 	if nil != err {
 		config.Logger().Errorf("转发请求至下游异常, routeConf id: %d, error: %v", routeConf.Id, err)
-		return nil, nil, errors.New("服务器转发异常，请稍后重试")
+		return nil, nil, errors.New("请求转发异常，请稍后重试")
 	}
 
 	//访问数量增加一次
@@ -96,7 +88,22 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	return remoteRsp, rspHeader, nil
 }
 
-func callRemoteService(url string, postData []byte, timeout int64, req *http.Request) ([]byte, http.Header, error) {
+// getRealHttpUrl 获取真实的链接
+func getRealHttpUrl(serviceUrl string) (string, error) {
+	//是否是否ip:port、域名链接格式
+	if net.IsIpAddressPort(serviceUrl) || net.IsDomainPortUrl(serviceUrl) {
+		return serviceUrl, nil
+	}
+
+	eurekaClient := config.Eureka()
+	httpUrl, err := eurekaClient.GetRealHttpUrl(serviceUrl)
+	return httpUrl, err
+}
+
+func callRemoteUrl(req *http.Request, url string, timeout int64) ([]byte, http.Header, error) {
+	reqBody, _ := io.ReadAll(req.Body)
+	_ = req.Body.Close()
+
 	httpClient := &http.Client{
 		Timeout: time.Duration(timeout) * time.Second,
 		Transport: &http.Transport{
@@ -104,8 +111,8 @@ func callRemoteService(url string, postData []byte, timeout int64, req *http.Req
 		},
 	}
 
-	reqBytes := bytes.NewBuffer(postData)
-	request, _ := http.NewRequest(http.MethodPost, url, reqBytes)
+	reqBytes := bytes.NewBuffer(reqBody)
+	request, _ := http.NewRequest(req.Method, url, reqBytes)
 
 	if nil != req.Header {
 		for key := range req.Header {
@@ -127,12 +134,12 @@ func callRemoteService(url string, postData []byte, timeout int64, req *http.Req
 		return []byte(""), nil, err
 	}
 
-	body, err := io.ReadAll(response.Body)
+	rspBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return body, response.Header, nil
+	return rspBody, response.Header, nil
 }
 
 // buildXForwardedForHeader 构造 X-Forwarded-For 报头

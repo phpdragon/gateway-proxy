@@ -13,6 +13,14 @@ func IsIpAddressPort(ipStr string) bool {
 	return false
 }
 
+// IsDomainPortUrl 是否域名链接
+func IsDomainPortUrl(ipStr string) bool {
+	if isOk, _ := regexp.MatchString(`^http(s?)://([\w\-]*)(\.?)([\w\-]+)\.([\w\-]+)(:\d+)?/?`, ipStr); isOk {
+		return isOk
+	}
+	return false
+}
+
 // GetLocalIp 获取本地ip
 func GetLocalIp() string {
 	addr, err := net.InterfaceAddrs()

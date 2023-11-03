@@ -21,10 +21,11 @@ func QueryAllActiveRoutes() (map[string]entity.RouteConf, error) {
 	var routeConfList []entity.RouteConf
 
 	qb, _ := orm.NewQueryBuilder("mysql")
-	sql := qb.Select("r.*", "o.*").
+	sql := qb.Select("r.*", "o.limit,o.interval").
 		From(route.EmptyModel.TableName() + " as r").
-		LeftJoin(overload.EmptyModel.TableName() + " as o").On("r.app_id = o.app_id AND r.url_path = o.url_path").
-		Where("r.state = o.state AND r.state = ?").String()
+		LeftJoin(overload.EmptyModel.TableName() + " as o").
+		On("r.app_id = o.app_id AND r.url_path = o.url_path AND r.state = o.state").
+		Where("r.state = ?").String()
 
 	_, err := dbOrm.Raw(sql, consts.StateEnable).QueryRows(&routeConfList)
 	if err != nil && !errors.Is(err, orm.ErrNoRows) {

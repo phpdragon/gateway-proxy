@@ -5,7 +5,6 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/base"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/errorcode"
-	"github.com/phpdragon/gateway-proxy/internal/consts/httpcode"
 	"github.com/phpdragon/gateway-proxy/internal/logic/request"
 	"github.com/phpdragon/gateway-proxy/internal/logic/response"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
@@ -69,10 +68,10 @@ func favicon(writer http.ResponseWriter, _ *http.Request) {
 }
 
 func indexHandle(rw http.ResponseWriter, req *http.Request) {
-	if http.MethodOptions == req.Method {
-		response.WriteStatusCode(rw, req, httpcode.NoContent)
-		return
-	}
+	//if http.MethodOptions == req.Method {
+	//	response.WriteStatusCode(rw, req, httpcode.NoContent)
+	//	return
+	//}
 
 	startTime := date.GetCurrentTimeMillis()
 	config.Logger().Infof("")
