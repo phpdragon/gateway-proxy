@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/phpdragon/gateway-proxy/internal/base"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
@@ -66,15 +65,15 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 		return nil, nil, errors.New("服务器繁忙，请稍后重试")
 	}
 
-	//获取真实的链接
-	realUrl, err := getRealHttpUrl(routeConf.ServiceUrl)
+	//获取真实的请求链接
+	httpUrl, err := getRemoteHttpUrl(req.URL, routeConf.ServiceUrl)
 	if nil != err {
 		config.Logger().Errorf("获取下游真实地址异常，请稍后重试, routeConf id: %d, error: %v", routeConf.Id, err)
 		return nil, nil, errors.New("请求处理异常，请稍后重试")
 	}
 
 	//调用远程服务
-	remoteRsp, rspHeader, err := callRemoteUrl(req, realUrl, routeConf.Timeout)
+	remoteRsp, rspHeader, err := callRemoteUrl(req, httpUrl, routeConf.Timeout)
 	if nil != err {
 		config.Logger().Errorf("转发请求至下游异常, routeConf id: %d, error: %v", routeConf.Id, err)
 		return nil, nil, errors.New("请求转发异常，请稍后重试")
@@ -90,19 +89,25 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
 	return remoteRsp, rspHeader, nil
 }
 
-// getRealHttpUrl 获取真实的链接
-func getRealHttpUrl(serviceUrl string) (string, error) {
-	//是否是否ip:port、域名链接格式
-	if net.IsIpAddressPort(serviceUrl) || net.IsDomainPortUrl(serviceUrl) {
-		return serviceUrl, nil
+// getRemoteHttpUrl 获取真实的请求链接
+func getRemoteHttpUrl(reqUrl *url.URL, serviceUrl string) (string, error) {
+	var httpUrl = serviceUrl
+	//不是ip:port、域名链接格式， 则是eureka服务链接
+	if !(net.IsIpAddressPort(serviceUrl) || net.IsDomainPortUrl(serviceUrl)) {
+		eurekaClient := config.Eureka()
+		realUrl, err := eurekaClient.GetRealHttpUrl(serviceUrl)
+		if nil != err {
+			return "", err
+		}
+
+		httpUrl = realUrl
 	}
 
-	eurekaClient := config.Eureka()
-	httpUrl, err := eurekaClient.GetRealHttpUrl(serviceUrl)
-	return httpUrl, err
+	//构造请求链接
+	return buildRemoteUrl(httpUrl, reqUrl)
 }
 
-func callRemoteUrl(req *http.Request, url string, timeout int) ([]byte, http.Header, error) {
+func callRemoteUrl(req *http.Request, httpUrl string, timeout int) ([]byte, http.Header, error) {
 	reqBody, _ := io.ReadAll(req.Body)
 	_ = req.Body.Close()
 
@@ -113,7 +118,6 @@ func callRemoteUrl(req *http.Request, url string, timeout int) ([]byte, http.Hea
 		},
 	}
 
-	httpUrl := buildHttpUrl(url, req.URL)
 	reqBytes := bytes.NewBuffer(reqBody)
 	request, _ := http.NewRequest(req.Method, httpUrl, reqBytes)
 
@@ -145,10 +149,11 @@ func callRemoteUrl(req *http.Request, url string, timeout int) ([]byte, http.Hea
 	return rspBody, response.Header, nil
 }
 
-func buildHttpUrl(url string, srcUrl *url.URL) string {
-	targetUrl, err := srcUrl.Parse(url)
+// buildRemoteUrl 构造请求链接
+func buildRemoteUrl(httpUrl string, srcUrl *url.URL) (string, error) {
+	targetUrl, err := url.Parse(httpUrl)
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
 
 	var buf strings.Builder
@@ -179,7 +184,7 @@ func buildHttpUrl(url string, srcUrl *url.URL) string {
 		buf.WriteByte('#')
 		buf.WriteString(srcUrl.Fragment)
 	}
-	return buf.String()
+	return buf.String(), nil
 }
 
 // buildXForwardedForHeader 构造 X-Forwarded-For 报头
