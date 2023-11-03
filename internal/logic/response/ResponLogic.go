@@ -32,7 +32,7 @@ func WriteRsp(rw http.ResponseWriter, req *http.Request, response interface{}) {
 	}
 }
 
-func WriteByteRsp(rw http.ResponseWriter, req *http.Request, response []byte, rspHeader http.Header) {
+func WriteByteRsp(rw http.ResponseWriter, req *http.Request, response []byte, rspHeader http.Header, crossDomain bool) {
 	if rspHeader != nil {
 		for key := range rspHeader {
 			keyLower := strings.ToLower(key)
@@ -50,7 +50,9 @@ func WriteByteRsp(rw http.ResponseWriter, req *http.Request, response []byte, rs
 	}
 
 	//设置跨域报头
-	setCrossDomainHeaders(rw, req)
+	if crossDomain {
+		setCrossDomainHeaders(rw, req)
+	}
 
 	_, err := rw.Write(response)
 	if err != nil {

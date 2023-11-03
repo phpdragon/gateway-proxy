@@ -1,4 +1,4 @@
-package overload
+package models
 
 import "github.com/astaxie/beego/orm"
 
@@ -15,8 +15,8 @@ type Overload struct {
 	CreateTime string `orm:"column(create_time)" json:"create_time"`
 }
 
-// EmptyModel 暴露自身，让外部能调用绑定方法
-var EmptyModel = &Overload{}
+// OverloadModel 暴露自身，让外部能调用绑定方法
+var OverloadModel = &Overload{}
 
 func (t *Overload) TableName() string {
 	return "t_overload"
@@ -24,5 +24,5 @@ func (t *Overload) TableName() string {
 
 func init() {
 	// register model
-	orm.RegisterModel(EmptyModel)
+	orm.RegisterModel(OverloadModel)
 }

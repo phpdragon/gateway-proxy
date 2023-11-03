@@ -2,7 +2,7 @@ package httpheader
 
 const Connection = "Connection"
 const CacheControl = "Cache-Control"
-const ContentType = "Content-Type"
+const ContentType = "Content-RouteId"
 const ContentLength = "Content-Length"
 const TransferEncoding = "Transfer-Encoding"
 const PRAGMA = "Pragma"

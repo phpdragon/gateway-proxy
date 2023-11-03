@@ -2,24 +2,24 @@ package limit
 
 import (
 	"github.com/phpdragon/gateway-proxy/internal/logic/redis"
-	"github.com/phpdragon/gateway-proxy/internal/mysql/entity"
+	"github.com/phpdragon/gateway-proxy/internal/mysql/models"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
 )
 
 // CheckAccessRateLimit 检查访问频率
-func CheckAccessRateLimit(routeConf *entity.RouteConf) (int, bool) {
+func CheckAccessRateLimit(routeConf *models.RouteConf) (int, bool) {
 	cacheKey := redis.GetAccessTotalCacheKey(routeConf.Id, redis.CacheKeyRateLimit)
 	return checkLimit(cacheKey, routeConf.RateLimit, 1)
 }
 
 // CheckOverloadLimit 过载保护
-func CheckOverloadLimit(routeConf *entity.RouteConf) (int, bool) {
+func CheckOverloadLimit(routeConf *models.RouteConf) (int, bool) {
 	cacheKey := redis.GetAccessTotalCacheKey(routeConf.Id, redis.CacheKeyOverload)
 	return checkLimit(cacheKey, routeConf.Limit, routeConf.Interval)
 }
 
 // TotalIncr 访问、过载计数增加一次
-func TotalIncr(routeConf *entity.RouteConf, accessTotal int, overload int) {
+func TotalIncr(routeConf *models.RouteConf, accessTotal int, overload int) {
 	accessTotalKey := redis.GetAccessTotalCacheKey(routeConf.Id, redis.CacheKeyRateLimit)
 	overloadKey := redis.GetAccessTotalCacheKey(routeConf.Id, redis.CacheKeyOverload)
 	//访问计数增1

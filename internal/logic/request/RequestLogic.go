@@ -9,11 +9,12 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/httpheader"
 	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
-	"github.com/phpdragon/gateway-proxy/internal/consts/rspmode"
+	"github.com/phpdragon/gateway-proxy/internal/consts/route"
 	"github.com/phpdragon/gateway-proxy/internal/logic/app"
 	"github.com/phpdragon/gateway-proxy/internal/logic/auth"
+	"github.com/phpdragon/gateway-proxy/internal/logic/cross"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
-	"github.com/phpdragon/gateway-proxy/internal/mysql/dao"
+	routeLogic "github.com/phpdragon/gateway-proxy/internal/logic/route"
 	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
@@ -22,71 +23,74 @@ import (
 	"time"
 )
 
-func HandleHttpRequest(req *http.Request) ([]byte, http.Header, error) {
-	routeConfMap, err := dao.QueryAllActiveRoutes()
-	if nil != err {
-		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s, error: %v", req.URL.Path, err.Error())
-		return nil, nil, errors.New("系统无法路由当前请求,请联系开发人员进行配置")
-	}
+func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
+	routeConfMap := routeLogic.QueryAllActiveRoutes()
 	if nil == routeConfMap {
 		config.Logger().Errorf("系统无法路由当前请求,请联系开发人员进行配置, urlPath: %s", req.URL.Path)
-		return nil, nil, errors.New("系统无法路由当前请求,请开发人员配置转发设置")
+		return nil, nil, false, errors.New("系统无法路由当前请求,请开发人员配置转发设置")
 	}
 
 	routeConf, ok := routeConfMap[req.URL.Path]
 	if !ok {
 		config.Logger().Errorf("请开发人员配置转发设置, urlPath: %s", req.URL.Path)
-		return nil, nil, errors.New("请开发人员配置转发设置")
+		return nil, nil, false, errors.New("请开发人员配置转发设置")
+	}
+
+	//判断跨域
+	crossDomain := cross.CheckDomain(&routeConf, req.Header.Get(httpheader.ORIGIN))
+	//如果是系统处理跨域，直接返回OPTIONS请求结果
+	if http.MethodOptions == req.Method && crossDomain {
+		return nil, nil, true, nil
 	}
 
 	//校验App是否已经下线
 	if !app.CheckAppIsOnline(routeConf.AppId) {
 		config.Logger().Warnf("当前服务已下线, app id: %s", routeConf.AppId)
-		return nil, nil, errors.New("当前服务已下线")
+		return nil, nil, true, errors.New("当前服务已下线")
 	}
 
 	//鉴权
 	if !auth.CheckSession(&routeConf) {
 		config.Logger().Warnf("当前会话鉴权无效, routeConf id: %d", routeConf.Id)
-		return nil, nil, errors.New("当前会话鉴权无效")
+		return nil, nil, false, errors.New("当前会话鉴权无效")
 	}
 
 	//请求频率检测
 	accessTotal, checked := limit.CheckAccessRateLimit(&routeConf)
 	if !checked {
 		config.Logger().Warnf("请求过于频繁，请稍后再试, routeConf id: %d", routeConf.Id)
-		return nil, nil, errors.New("请求过于频繁，请稍后再试")
+		return nil, nil, false, errors.New("请求过于频繁，请稍后再试")
 	}
 
 	//过载保护
 	overload, chk := limit.CheckOverloadLimit(&routeConf)
 	if !chk {
 		config.Logger().Warnf("服务器请求繁忙，请稍后重试, routeConf id: %d", routeConf.Id)
-		return nil, nil, errors.New("服务器繁忙，请稍后重试")
+		return nil, nil, false, errors.New("服务器繁忙，请稍后重试")
 	}
 
 	//获取真实的请求链接
 	httpUrl, err := getRemoteHttpUrl(req.URL, routeConf.ServiceUrl)
 	if nil != err {
 		config.Logger().Errorf("获取下游真实地址异常，请稍后重试, routeConf id: %d, error: %v", routeConf.Id, err)
-		return nil, nil, errors.New("请求处理异常，请稍后重试")
+		return nil, nil, false, errors.New("请求处理异常，请稍后重试")
 	}
 
 	//调用远程服务
 	remoteRsp, rspHeader, err := callRemoteUrl(req, httpUrl, routeConf.Timeout)
 	if nil != err {
 		config.Logger().Errorf("转发请求至下游异常, routeConf id: %d, error: %v", routeConf.Id, err)
-		return nil, nil, errors.New("请求转发异常，请稍后重试")
+		return nil, nil, false, errors.New("请求转发异常，请稍后重试")
 	}
 
 	//访问数量增加一次
 	limit.TotalIncr(&routeConf, accessTotal, overload)
 
-	if rspmode.ENCRYPT != routeConf.RspMode {
+	if route.RspModeEncrypt != routeConf.RspMode {
 		remoteRsp = encryptRsp(remoteRsp)
 	}
 
-	return remoteRsp, rspHeader, nil
+	return remoteRsp, rspHeader, crossDomain, nil
 }
 
 // getRemoteHttpUrl 获取真实的请求链接

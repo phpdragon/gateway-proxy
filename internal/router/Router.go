@@ -5,6 +5,7 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/base"
 	"github.com/phpdragon/gateway-proxy/internal/config"
 	"github.com/phpdragon/gateway-proxy/internal/consts/errorcode"
+	"github.com/phpdragon/gateway-proxy/internal/consts/httpcode"
 	"github.com/phpdragon/gateway-proxy/internal/logic/request"
 	"github.com/phpdragon/gateway-proxy/internal/logic/response"
 	"github.com/phpdragon/gateway-proxy/internal/utils/date"
@@ -68,21 +69,22 @@ func favicon(writer http.ResponseWriter, _ *http.Request) {
 }
 
 func indexHandle(rw http.ResponseWriter, req *http.Request) {
-	//TODO: 根据配置来判定是否需要处理跨域
-	//if http.MethodOptions == req.Method {
-	//	response.WriteStatusCode(rw, req, httpcode.NoContent)
-	//	return
-	//}
-
 	startTime := date.GetCurrentTimeMillis()
 	config.Logger().Infof("")
 
-	rsp, rspHeader, err := request.HandleHttpRequest(req)
+	//处理请求
+	rsp, rspHeader, crossDomain, err := request.HandleHttpRequest(req)
 	if nil != err {
 		rsp, _ = base.BuildFailByte(errorcode.SystemError, err.Error())
 	}
 
-	response.WriteByteRsp(rw, req, rsp, rspHeader)
+	//处理跨域返回
+	if http.MethodOptions == req.Method && crossDomain {
+		response.WriteStatusCode(rw, req, httpcode.NoContent)
+		return
+	}
+
+	response.WriteByteRsp(rw, req, rsp, rspHeader, crossDomain)
 
 	//打印方法执行耗时的信息
 	endTime := date.GetCurrentTimeMillis()
