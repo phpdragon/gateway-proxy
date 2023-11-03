@@ -29,6 +29,10 @@ func HandleSystemRequest(req *http.Request) {
 
 	param := httpUtil.ParseGetArgs(req.URL.RawQuery)
 	if "refresh" == action && routeConst.SysRefreshKey == param["key"] {
+		if routeConst.SysRefreshKey == param["key"] {
+			config.Logger().Errorf("刷新系统配置秘钥非法, key: %s", param["key"])
+			return
+		}
 		app.Refresh()
 		route.Refresh()
 		cross.Refresh()
