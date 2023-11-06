@@ -15,7 +15,6 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/logic/cross"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
 	"github.com/phpdragon/gateway-proxy/internal/logic/route"
-	httpUtil "github.com/phpdragon/gateway-proxy/internal/utils/http"
 	"github.com/phpdragon/gateway-proxy/internal/utils/net"
 	"io"
 	"net/http"
@@ -23,21 +22,6 @@ import (
 	"strings"
 	"time"
 )
-
-func HandleSystemRequest(req *http.Request) {
-	action := strings.Replace(req.URL.Path, routeConst.RouterSystem, "", 1)
-
-	param := httpUtil.ParseGetArgs(req.URL.RawQuery)
-	if "refresh" == action {
-		if routeConst.SysRefreshKey != param["key"] {
-			config.Logger().Errorf("刷新系统配置秘钥非法, key: %s", param["key"])
-			return
-		}
-		app.Refresh()
-		route.Refresh()
-		cross.Refresh()
-	}
-}
 
 func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
 	routeConfMap := route.QueryAllActiveRoutes()
