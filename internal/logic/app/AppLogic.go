@@ -60,8 +60,8 @@ func CheckAuth(req *http.Request, route *models.RouteConf) bool {
 	return authToken == token
 }
 
-// CheckAppIsOnline 校验应用是否在线
-func CheckAppIsOnline(appId string) bool {
+// CheckOnline 校验应用是否在线
+func CheckOnline(appId string) bool {
 	return GetAppConf(appId) != nil
 }
 

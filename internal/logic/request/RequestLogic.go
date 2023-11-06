@@ -43,7 +43,7 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
 	}
 
 	//校验App是否已经下线
-	if !app.CheckAppIsOnline(routeConf.AppId) {
+	if !app.CheckOnline(routeConf.AppId) {
 		config.Logger().Warnf("当前服务已下线, app id: %s", routeConf.AppId)
 		return nil, nil, true, errors.New("当前服务已下线")
 	}
