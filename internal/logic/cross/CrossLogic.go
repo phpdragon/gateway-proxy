@@ -39,11 +39,10 @@ func CheckDomain(routeConf *models.RouteConf, origin string) bool {
 // checkGlobalDomain 判断全局跨域配置
 func checkGlobalDomain(appId string, origin string) bool {
 	//如果配置了全局跨域
-	appMap := appLogic.GetAppConfMap()
+	appConf := appLogic.GetAppConf(appId)
 
 	//全局跨域判断
-	appConf, has := appMap[appId]
-	if has && route.CrossModeAllow == appConf.CrossMode {
+	if nil != appConf && route.CrossModeAllow == appConf.CrossMode {
 		return true
 	}
 

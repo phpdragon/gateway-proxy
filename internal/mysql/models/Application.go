@@ -13,6 +13,8 @@ type Application struct {
 	Name       string `orm:"column(name)" json:"name"`             //应用名称
 	Remark     string `orm:"column(remark)" json:"remark"`         //应用描述
 	CrossMode  int    `orm:"column(cross_mode)" json:"cross_mode"` //跨域模式：0-禁止,1-允许,2-配置
+	AuthMode   int    `orm:"column(auth_mode)" json:"auth_mode"`   //鉴权模式：0-不鉴权,1-报头,2-URL
+	AuthCode   string `orm:"column(auth_code)" json:"auth_code"`   //鉴权码
 	State      int    `orm:"column(state)" json:"state"`           //1:启用,0:禁用
 	UpdateTime string `orm:"column(update_time)" json:"update_time"`
 	CreateTime string `orm:"column(create_time)" json:"create_time"`

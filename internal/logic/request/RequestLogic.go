@@ -11,7 +11,6 @@ import (
 	"github.com/phpdragon/gateway-proxy/internal/consts/medietype"
 	routeConst "github.com/phpdragon/gateway-proxy/internal/consts/route"
 	"github.com/phpdragon/gateway-proxy/internal/logic/app"
-	"github.com/phpdragon/gateway-proxy/internal/logic/auth"
 	"github.com/phpdragon/gateway-proxy/internal/logic/cross"
 	"github.com/phpdragon/gateway-proxy/internal/logic/limit"
 	"github.com/phpdragon/gateway-proxy/internal/logic/route"
@@ -50,9 +49,9 @@ func HandleHttpRequest(req *http.Request) ([]byte, http.Header, bool, error) {
 	}
 
 	//鉴权
-	if !auth.CheckSession(&routeConf) {
+	if !app.CheckAuth(req, &routeConf) {
 		config.Logger().Warnf("当前会话鉴权无效, routeConf id: %d", routeConf.Id)
-		return nil, nil, true, errors.New("当前会话鉴权无效")
+		return nil, nil, true, errors.New("当前请求鉴权无效")
 	}
 
 	//请求频率检测

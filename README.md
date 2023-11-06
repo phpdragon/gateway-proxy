@@ -45,6 +45,8 @@ CREATE TABLE `db_gateway_proxy`.`t_application` (
      `app_id` int(11) NOT NULL DEFAULT '0' COMMENT '应用ID',
      `name` varchar(32) NOT NULL DEFAULT '' COMMENT '应用名称',
      `cross_mode` tinyint(1) DEFAULT '1' COMMENT '跨域模式总开关：0-不处理跨域(由下游处理),1-允许,2-配置',
+     `auth_mode` tinyint(1) DEFAULT '0' COMMENT '鉴权模式：0-不鉴权,1-报头,2-URL',
+     `auth_code` varchar(30) DEFAULT '' COMMENT '鉴权码',
      `remark` varchar(255) DEFAULT '' COMMENT '应用描述',
      `state` tinyint(1) DEFAULT '1' COMMENT '1:启用,0:禁用',
      `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

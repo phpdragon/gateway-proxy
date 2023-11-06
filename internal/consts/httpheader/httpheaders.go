@@ -16,3 +16,9 @@ const AccessControlAllowOrigin = "Access-Control-Allow-Origin"
 const AccessControlAllowMethods = "Access-Control-Allow-Methods"
 const AccessControlAllowHeaders = "Access-Control-Allow-Headers"
 const AccessControlAllowCredentials = "Access-Control-Allow-Credentials"
+
+// XAuthToken 自定义鉴权token
+const XAuthToken = "x-auth-token"
+
+// XAuthTimestamp 自定义鉴权时间戳
+const XAuthTimestamp = "x-auth-timestamp"

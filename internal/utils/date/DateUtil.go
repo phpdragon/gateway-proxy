@@ -5,8 +5,8 @@ import (
 )
 
 // GetCurrentTimestamp 当前系统秒
-func GetCurrentTimestamp() int32 {
-	return int32(time.Now().Unix())
+func GetCurrentTimestamp() int64 {
+	return time.Now().Unix()
 }
 
 // GetCurrentTimeMillis 当前系统毫秒
