@@ -7,6 +7,7 @@
 
 #### 软件架构
 ##### 1.软件架构说明
+
 ##### 2.代码结构目录
 ```text
 gateway-proxy/
@@ -28,6 +29,7 @@ gateway-proxy/
 └── scripts  #项目脚本
     └── server.sh
 ```
+参考： [Go 项目标准布局](https://zhuanlan.zhihu.com/p/662397116)、[Go 项目目录结构](https://blog.csdn.net/wohu1104/article/details/123209272)、[go项目标准化工程结构解析](https://blog.csdn.net/keenw/article/details/126352773)
 
 ------------------------------------
 
@@ -35,24 +37,77 @@ gateway-proxy/
 
 1.  DB
 
-```sql
+```mysql
 CREATE DATABASE db_gateway_proxy;
 
-CREATE TABLE db_gateway_proxy.`t_route` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `app_id` int(11) DEFAULT '0' COMMENT 'appId',
-  `url_path` varchar(75) DEFAULT NULL COMMENT 'URI路径',
-  `service_url` varchar(300) DEFAULT NULL COMMENT '服务名',
-  `rate_limit` int(11) DEFAULT '10' COMMENT '频率限制每秒次数',
-  `timeout` int(11) DEFAULT '10' COMMENT '微服务调用超时时间，秒',
-  `status` int(1) DEFAULT NULL COMMENT '1:启用,0:禁用',
-  `timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `url_path` (`url_path`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 COMMENT='cmd 服务名映射表';
+CREATE TABLE `db_gateway_proxy`.`t_application` (
+     `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'id',
+     `app_id` int(11) NOT NULL DEFAULT '0' COMMENT '应用ID',
+     `name` varchar(32) NOT NULL DEFAULT '' COMMENT '应用名称',
+     `cross_mode` tinyint(1) DEFAULT '1' COMMENT '跨域模式总开关：0-不处理跨域(由下游处理),1-允许,2-配置',
+     `auth_mode` tinyint(1) DEFAULT '0' COMMENT '鉴权模式：0-不鉴权,1-报头,2-URL',
+     `auth_code` varchar(30) DEFAULT '' COMMENT '鉴权码',
+     `remark` varchar(255) DEFAULT '' COMMENT '应用描述',
+     `state` tinyint(1) DEFAULT '1' COMMENT '1:启用,0:禁用',
+     `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+     `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+     PRIMARY KEY (`id`) USING BTREE,
+     UNIQUE KEY `idx_app_id` (`app_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='接入方映射表';
 
-INSERT INTO `db_gateway_proxy`.`t_route`(`id`, `app_id`, `url_path`, `service_url`, `rate_limit`, `timeout`, `status`, `timestamp`)
-VALUES (1, 100001, '/cfg/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 1, '2020-03-26 19:50:59');
+CREATE TABLE `db_gateway_proxy`.`t_route` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `app_id` int(11) DEFAULT '0' COMMENT '应用ID',
+    `url_path` varchar(75) DEFAULT '' COMMENT '请求路径，建议:/appName/module/action',
+    `service_url` varchar(300) DEFAULT '' COMMENT '下游Url，支持eureka模式和域名、ip端口模式',
+    `rate_limit` int(11) DEFAULT '10' COMMENT '频率限制，每秒次数',
+    `timeout` int(11) DEFAULT '10' COMMENT '超时时间，单位秒',
+    `rsp_mode` tinyint(1) DEFAULT '0' COMMENT '应答模式：0-明文,1-加密',
+    `cross_mode` tinyint(1) DEFAULT '1' COMMENT '跨域模式：0-不处理跨域(由下游处理),1-允许,2-配置',
+    `remark` varchar(255) DEFAULT '' COMMENT '请求路径描述',
+    `state` tinyint(1) DEFAULT '1' COMMENT '1:启用,0:禁用',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `idx_url_path` (`url_path`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='服务路由映射表';
+
+CREATE TABLE `db_gateway_proxy`.`t_overload` (
+    `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `app_id` int(11) DEFAULT '0' COMMENT '应用ID',
+    `url_path` varchar(75) DEFAULT '' COMMENT '请求路径',
+    `limit` int(11) DEFAULT '10' COMMENT '限制次数',
+    `interval` int(11) DEFAULT '10' COMMENT '间隔时间，单位秒',
+    `remark` varchar(255) DEFAULT '' COMMENT '请求路径描述',
+    `state` tinyint(1) DEFAULT '1' COMMENT '1:启用,0:禁用',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `idx_url_path` (`url_path`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='过载配置表';
+
+CREATE TABLE `db_gateway_proxy`.`t_cross_domain` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `app_id` int(11) DEFAULT '0' COMMENT 'appId',
+    `route_id` tinyint(1) DEFAULT '0' COMMENT '路由id：0-全局',
+    `origin` varchar(128) NOT NULL COMMENT '来源域名链接',
+    `remark` varchar(255) DEFAULT '' COMMENT '描述',
+    `state` tinyint(1) DEFAULT '1' COMMENT '1:启用,0:禁用',
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `create_time` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE INDEX `idx_app_route_origin`(`app_id`, `route_id`, `origin`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COMMENT='跨域白名单';
+
+INSERT INTO `db_gateway_proxy`.`t_application`(`id`, `app_id`, `name`, `remark`, `state`, `update_time`, `create_time`) 
+VALUES (1, 100001, '文件代理服务', '文件代理服务', 1, '2023-11-02 19:30:21', '2023-11-02 19:30:21');
+
+INSERT INTO `db_gateway_proxy`.`t_route`(`id`, `app_id`, `url_path`, `service_url`, `rate_limit`, `timeout`, `rsp_mode`, `cross_mode`, `state`, `update_time`, `create_time`)
+VALUES (1, 100001, '/fileProxy/testCtl/demoAction', 'http://FILE-PROXY/testCtl/demoAction', 2, 60, 0, 1, 1, '2020-03-26 19:50:59', '2020-03-26 19:50:59');
+
+INSERT INTO `db_gateway_proxy`.`t_overload`(`id`, `app_id`, `url_path`, `limit`, `interval`, `remark`, `state`, `update_time`, `create_time`) 
+VALUES (1, 100001, '/fileProxy/testCtl/demoAction', 5, 10, '', 1, '2023-11-02 18:16:53', '2023-11-02 18:16:53');
+
 
 ```
 
@@ -136,10 +191,8 @@ INFO: the app gateway-proxy is running , pid:727 !
 ------------------------------------
 
 #### TODO
-1. 支持apollo获取配置
-2. 需要添加日志上报功能
-3. 代码优化
-4. 测试用例编写
+1. 需要添加日志染色功能，格式化日志
+2. 测试用例编写
 
 
 #### 参与贡献

@@ -13,7 +13,7 @@ database:
   dbname: db_gateway_proxy
   charset: utf8
 redis:
-  host: 172.16.1.120:16379
+  host: 172.16.1.120:6379
   password:
   db: 0
 log:
@@ -23,7 +23,7 @@ log:
 
 eureka:
   serviceUrl:
-    defaultZone: http://172.16.1.155:8761/eureka/
+    defaultZone: http://172.16.1.65:8761/eureka/
   client:
     #指示从eureka服务器获取注册表信息的频率（s）
     registryFetchIntervalSeconds: 30

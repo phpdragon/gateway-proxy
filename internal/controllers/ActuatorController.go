@@ -1,6 +1,8 @@
 package controllers
 
-import "github.com/phpdragon/gateway-proxy/internal/utils"
+import (
+	"github.com/phpdragon/gateway-proxy/internal/utils/number"
+)
 
 type status struct {
 	Name   string `json:"name"`
@@ -20,7 +22,7 @@ type Details struct {
 func ActuatorStatus(port int, appName string) interface{} {
 	appStatus := status{}
 	appStatus.Name = appName
-	appStatus.Server.Port = utils.Int2Str(port)
+	appStatus.Server.Port = number.Int2Str(port)
 	return appStatus
 }
 
