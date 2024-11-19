@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Mirror the Github repos to Gitee.
         # 引用master分支的脚本支持
-        uses: Yikun/hub-mirror-action@master
+        uses: phpdragon/hub-mirror-action@master
         with:
           #  需要被同步的源端账户名，如github/phpdragon，表示Github的账户: phpdragon。
           src: github/phpdragon
