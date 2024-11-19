@@ -1,14 +1,15 @@
 ########################################
 # 用法：
-# 1、创建SSH公、私钥，在Linux命令行下执行命令： ssh-keygen , 一路回车得到秘钥文件： ~/.ssh/id_rsa 、~/.ssh/id_rsa.pub。
-# 2、在Gitee中添加SSH公钥(~/.ssh/id_rsa.pub文件内容)，链接： https://gitee.com/profile/sshkeys 。
-# 3、在Gitee中创建私人令牌, 链接： https://gitee.com/profile/personal_access_tokens 。
-# 4、在Github上创建项目 gateway-proxy 。
-# 5、点击 gateway-proxy 项目的【Settings】->【Secrets and variables】->【Actions】菜单，链接： https://github.com/phpdragon/gateway-proxy/settings/secrets/actions。
+# 1、创建SSH公、私钥，在Linux命令行下执行命令： ssh-keygen -t ed25519 -C "Gitee SSH Key" , 一路回车得到秘钥文件： ~/.ssh/id_ed25519 、~/.ssh/id_ed25519.pub。
+# 2、在Github上添加SSH公钥(~/.ssh/id_ed25519.pub文件内容)，链接：https://github.com/settings/keys
+# 3、在Gitee中添加SSH公钥(~/.ssh/id_ed25519.pub文件内容)，链接：https://gitee.com/profile/sshkeys 。
+# 4、在Gitee中创建私人令牌, 链接：https://gitee.com/profile/personal_access_tokens 。
+# 5、在Github上创建项目 gateway-proxy 。
+# 6、点击 gateway-proxy 项目的【Settings】->【Secrets and variables】->【Actions】菜单，链接： https://github.com/phpdragon/gateway-proxy/settings/secrets/actions。
 #    添加 GITEE_PRIVATE_SSH_KEY ，值为SSH私钥(~/.ssh/id_rsa文件内容)；
 #    添加 GITEE_PRIVATE_TOKEN ，值为Gitee私人令牌。
-# 6、在Gitee中导入Github的项目 gateway-proxy， 这样可以使用Gitee提供的Github代码同步功能(同步功能自动创建的项目没有该功能)。
-# 7、添加当前工作流配置文件，提交代码，便可通过push动作实现代码实时同步。
+# 7、在Gitee中导入Github的项目 gateway-proxy， 这样可以使用Gitee提供的Github代码同步功能(同步功能自动创建的项目没有该功能)。
+# 8、添加当前工作流配置文件，提交代码，便可通过push动作实现代码实时同步。
 #
 # 使用参考:
 # https://zhuanlan.zhihu.com/p/102977226
