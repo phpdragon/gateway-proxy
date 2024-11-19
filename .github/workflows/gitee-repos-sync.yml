@@ -44,18 +44,16 @@ jobs:
           dst_key: ${{ secrets.GITEE_PRIVATE_SSH_KEY }}
           # 创建仓库的API tokens， 用于自动创建不存在的仓库
           dst_token: ${{ secrets.GITEE_PRIVATE_TOKEN }}
-          account_type: user
-          # 指定目录cache
-          cache_path: /github/workspace/cache
           # 白名单，仅同步白名单中的repos，如“repo1,repo2,repo3”，当前的项目名称
           white_list: "gateway-proxy"
           # 仅同步静态列表，不会再动态获取需同步列表（黑白名单机制依旧生效），如“repo1,repo2,repo3”，当前的项目名称
           static_list: "gateway-proxy"
           # 强制更新
           force_update: true
+          account_type: user
           # clone方式，使用https、ssh方式进行clone
-          clone_style: "ssh"
+          clone_style: ssh
           #设置命令行超时时间为1小时
-          timeout: '1h'
+          timeout: 1h
           #开启Debug
           debug: false
