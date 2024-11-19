@@ -1,7 +1,7 @@
 ########################################
 # 用法：
 # 1、创建SSH公、私钥，在Linux命令行下执行命令： ssh-keygen -t ed25519 -C "Gitee SSH Key" , 一路回车得到秘钥文件： ~/.ssh/id_ed25519 、~/.ssh/id_ed25519.pub。
-# 2、在Github上添加SSH公钥(~/.ssh/id_ed25519.pub文件内容)，链接：https://github.com/settings/keys
+# 2、在Github上添加SSH公钥(~/.ssh/id_ed25519.pub文件内容)，链接：https://github.com/settings/keys 。
 # 3、在Gitee中添加SSH公钥(~/.ssh/id_ed25519.pub文件内容)，链接：https://gitee.com/profile/sshkeys 。
 # 4、在Gitee中创建私人令牌, 链接：https://gitee.com/profile/personal_access_tokens 。
 # 5、在Github上创建项目 gateway-proxy 。
